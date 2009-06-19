@@ -85,7 +85,7 @@ files = ['cards.db','deck.py','dialogs.py','engine.pyw',
          'Skins/Default/up.gif',
          'Skins/Default/wave.gif',
          'Skins/Default/X.gif',
-         'Skins/Default/zzz.gif','Images/']
+         'Skins/Default/zzz.gif']
 
 path = os.path.join(os.getcwd(),'update.xml')
 if os.path.exists(path):

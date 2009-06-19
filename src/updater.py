@@ -19,11 +19,11 @@
 import urllib, os, md5, sys, wx
 from xml.dom import minidom
 
-updateserver = 'http://jbyyxproject.googlecode.com/svn/src/'
+updateserver = 'http://jbyyxproject.googlecode.com/svn/branches/current/src/'
 
 def CheckUpdate(dir):
     toupdate = []
-    res = urllib.urlopen(updateserver + 'update.xml')
+    res = urllib.urlopen(updateserver)
     ret = res.read()
     xmldoc = minidom.parseString(ret)
     for node in xmldoc.firstChild.childNodes:
