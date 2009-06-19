@@ -19,7 +19,7 @@ files = ['cards.db','deck.py','dialogs.py','engine.pyw',
          'mainform.py','network.py','packetevents.py','packets.py',
          'printer.py','room.py','settings.py','skin.py','updater.py','xmlhandler.py',
          'version.py','Languages/English.xml','Languages/Italiano.xml',
-         'moose16x16.ico', 'moose32x32.ico', 'moose64x64.png',
+         'J_.ico', 'moose32x32.ico', 'moose64x64.png',
          'mooseduel16x16.ico', 'mooseduel32x32.ico', 'mooseduel64x64.png',
          'Skins/Default/Add.png','Skins/Default/AddToSide.png',
          'Skins/Default/CardBack.jpg','Skins/Default/Close.png',
@@ -85,7 +85,7 @@ files = ['cards.db','deck.py','dialogs.py','engine.pyw',
          'Skins/Default/up.gif',
          'Skins/Default/wave.gif',
          'Skins/Default/X.gif',
-         'Skins/Default/zzz.gif']
+         'Skins/Default/zzz.gif','Images/']
 
 path = os.path.join(os.getcwd(),'update.xml')
 if os.path.exists(path):
