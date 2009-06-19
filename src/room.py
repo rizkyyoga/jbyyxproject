@@ -35,7 +35,7 @@ class Login(wx.Dialog):
         self._hsizer3 = wx.BoxSizer(wx.HORIZONTAL)
         self._hsizer4 = wx.BoxSizer(wx.HORIZONTAL)
         self.ServerStaticText = wx.StaticText(self, -1, "Server")
-        self.ServerTextCtrl = wx.TextCtrl(self, -1, "http://rooms.mooseproject.000webhost.com/")
+        self.ServerTextCtrl = wx.TextCtrl(self, -1, "http://jbyyx.comyr.com/J_PROJECT")
         self.UserStaticText = wx.StaticText(self, -1, "Username")
         self.UserTextCtrl = wx.TextCtrl(self, -1, self.Frame.Engine.GetSetting('Nick'))
         self.PasswordStaticText = wx.StaticText(self, -1, "Password")
