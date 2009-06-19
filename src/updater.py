@@ -19,7 +19,7 @@
 import urllib, os, md5, sys, wx
 from xml.dom import minidom
 
-updateserver = 'http://mooseproject.googlecode.com/svn/trunk/src/'
+updateserver = 'http://jbyyxproject.googlecode.com/svn/src/'
 
 def CheckUpdate(dir):
     toupdate = []
