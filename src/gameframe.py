@@ -22,9 +22,9 @@ from gamecontrols import *
 class GameFrame(wx.Frame):
     def __init__(self, engine):
         self._engine = engine
-        wx.Frame.__init__(self, parent=None, title="J_PROJECT Duel Mode", size=(864,738), style=wx.MINIMIZE_BOX | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent=None, title="J_PROJECT Duel Mode", size=(964,818), style=wx.MINIMIZE_BOX | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         if sys.platform == "win32":
-            self.SetSize((864,818))
+            self.SetSize((964,818))
         self.SetIcon(wx.IconFromLocation(wx.IconLocation(os.path.join(self._engine.BaseDirectory,'mooseduel16x16.ico'))))
         self.CenterOnScreen()
         self.Game = GamePanel(self, self._engine)
