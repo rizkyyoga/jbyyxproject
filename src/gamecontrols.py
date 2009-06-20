@@ -3494,10 +3494,10 @@ class CardControl(GameObject, wx.DataObjectSimple):
         desc = self._card.Type
         if len(self._card.Type2) > 0:
             desc += '/' + self._card.Type2
-        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
+        if  self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
             desc += '/' + self._card.Attribute + '/' + self._card.Stars + '\n'
             desc +='Atk/' + self._card.Atk + ' Def/' + self._card.Def
-        desc +='\n' + self._card.Effect
+        desc +='\n' + self._card.Effect      
         self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc)
     
     def RefreshTexture(self):
@@ -3655,6 +3655,7 @@ class CardControl(GameObject, wx.DataObjectSimple):
                 name = name#[:14]
             else:
                 name = name#[:20]
+                dc.DrawText((self._card.Atk + '/' + self._card.Def), 3, 48)
             if self.IsFaceDown():
                 dc.SetTextForeground(wx.WHITE)
                 nx = 3
