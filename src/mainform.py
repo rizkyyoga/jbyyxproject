@@ -675,4 +675,5 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         info.AddArtist("""Michele 'MaZzo' Mazzoni""")
         info.AddArtist("Alexandre 'sa-ki' Moore")
         info.AddArtist("J_BYYX")
+        info.AddArtist("TheBeast")
         wx.AboutBox(info)
