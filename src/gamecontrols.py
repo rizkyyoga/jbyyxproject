@@ -267,9 +267,9 @@ class GamePanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnHandMonsterPosition, item)
         # Menu 3
         self._game_menu = wx.Menu()
-        item = wx.MenuItem(self._game_menu, -1, 'New Note')
-        self._game_menu.AppendItem(item)
-        self.Bind(wx.EVT_MENU, self.OnNewNote, item)
+        #item = wx.MenuItem(self._game_menu, -1, 'New Note')
+        #self._game_menu.AppendItem(item)
+        #self.Bind(wx.EVT_MENU, self.OnNewNote, item)
         item = wx.MenuItem(self._game_menu, -1, self._engine.GetLangString('Graveyard'))
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGraveLClick, item)
@@ -3491,13 +3491,13 @@ class CardControl(GameObject, wx.DataObjectSimple):
         self._game.OnCardPopup(self)
     
     def OnMouseOver(self, event):
-        desc = self._card.Type
+        desc = self._card.Name + '\n'+ self._card.Type
         if len(self._card.Type2) > 0:
             desc += '/' + self._card.Type2
         if  self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
             desc += '/' + self._card.Attribute + '/' + self._card.Stars + '\n'
             desc +='Atk/' + self._card.Atk + ' Def/' + self._card.Def
-        desc +='\n' + self._card.Effect      
+        desc +='\n' + self._card.Effect
         self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc)
     
     def RefreshTexture(self):
@@ -3517,6 +3517,9 @@ class CardControl(GameObject, wx.DataObjectSimple):
     
     def GetCardName(self):
         return self._card.Name
+    
+    def GetCardStats(self):
+        return self._card.Atk + '/' + self._card.Def
     
     def GetCardEffect(self):
         return self._card.Effect
@@ -3639,31 +3642,39 @@ class CardControl(GameObject, wx.DataObjectSimple):
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self._texture, 0, 0, True)
-        font = wx.Font(pointSize=7,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma")
+        font = wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma")
         font.SetNoAntiAliasing(True)
         dc.SetFont(font)
-        dc.DrawText((self._card.Atk + '/' + self._card.Def), 5, 70)
         name = self.GetCardName()
+        stats = self.GetCardStats()
         p = self.GetCardPosition()
         if p == 2 or p == 3 or p == 4 or p == 5 or p == 6:
             name = name[:26]
             nx = 2
             ny = 1
+            sx = 10
+            sy = 10
             dc.SetTextForeground(wx.BLACK)
         else:
             if self.IsVertical():
                 name = name#[:14]
+                stats = stats
             else:
                 name = name#[:20]
-                dc.DrawText((self._card.Atk + '/' + self._card.Def), 3, 48)
+                stats = stats
+                dc.DrawText(stats, 4, 44)
             if self.IsFaceDown():
                 dc.SetTextForeground(wx.WHITE)
                 nx = 3
                 ny = 2
+                sx = 4
+                sy = 44
             else:
                 dc.SetTextForeground(wx.BLACK)
                 nx = 3
                 ny = 2
+                sx = 4
+                sy = 68
         if self.IsFaceDown():
             namelines = name.split(' ')
             drawtext = ''
@@ -3679,9 +3690,11 @@ class CardControl(GameObject, wx.DataObjectSimple):
                     dc.DrawText(drawtext, nx, ny)
                     ny += extent[1] + 1
                     drawtext = line
+                    dc.DrawText(stats, sx, sy)
             dc.DrawText(drawtext, nx, ny)
         elif not self._engine.GetSetting('ShowFaceUpCardName') == 'No':
             dc.DrawText(name, nx, ny)
+            dc.DrawText(stats, sx, sy)
         if self.IsTarget():
             tbmp = self._engine.GetSkinImage('Target')
             if self.IsVertical():
@@ -3692,9 +3705,9 @@ class CardControl(GameObject, wx.DataObjectSimple):
             #dc.SetTextForeground(wx.BLACK)
             dc.SetFont(wx.Font(pointSize=9,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD, faceName="Tahoma"))
             if self.IsVertical():
-                dc.DrawText(str(self._counters), 8, 68)
+                dc.DrawText(str(self._counters), 8, 48)
             else:
-                dc.DrawText(str(self._counters), 7, 42)
+                dc.DrawText(str(self._counters), 7, 22)
 
 class OpponentCardControl(GameObject):
     def __init__(self, parent, card, engine, game, serial, cpos=0, cardmode=0, cardface=1):
@@ -3745,7 +3758,7 @@ class OpponentCardControl(GameObject):
     def OnMouseOver(self, event):
         if self.IsFaceDown():
             return
-        desc = self._card.Type
+        desc = self._card.Name + '\n'+ self._card.Type
         if len(self._card.Type2) > 0:
             desc += '/' + self._card.Type2
         if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
@@ -3760,6 +3773,9 @@ class OpponentCardControl(GameObject):
     
     def GetCardName(self):
         return self._card.Name
+    
+    def GetCardStats(self):
+        return self._card.Atk + '/' + self._card.Def
     
     def GetCardEffect(self):
         return self._card.Effect
@@ -3796,6 +3812,10 @@ class OpponentCardControl(GameObject):
 
     def IsFusion(self):
         if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Fusion') > 0: return True
+        else: return False
+    
+    def IsSynchro(self):
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Synchro') > 0: return True
         else: return False
 
     def IsRitual(self):
@@ -3872,26 +3892,33 @@ class OpponentCardControl(GameObject):
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         dc.DrawBitmap(self._texture, 0, 0, True)
-        font = wx.Font(pointSize=7,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma")
+        font = wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma")
         font.SetNoAntiAliasing(True)
         dc.SetFont(font)
         name = self.GetCardName()
+        stats = self.GetCardStats()
         p = self.GetCardPosition()
         if self.IsFaceUp() and not self._engine.GetSetting('ShowFaceUpCardName') == 'No':
             if p == 9 or p == 10 or p == 11 or p == 12 or p == 13:
                 name = name[:26]
                 nx = 2
                 ny = 1
+                sx = 10
+                sy = 10
                 dc.SetTextForeground(wx.BLACK)
             else:
                 if self.IsVertical():
                     name = name[:14]
+                    stats = stats
                     nx = 3
                     ny = 2
+                    dc.DrawText(stats, 4, 68)
                 else:
                     name = name[:20]
+                    stats = stats
                     nx = 3
                     ny = 2
+                    dc.DrawText(stats, 4, 44)
             dc.DrawText(name, nx, ny)
         if self.IsTarget():
             tbmp = self._engine.GetSkinImage('Target')
@@ -3906,9 +3933,9 @@ class OpponentCardControl(GameObject):
                 dc.SetTextForeground(wx.BLACK)
             dc.SetFont(wx.Font(pointSize=9,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD, faceName="Tahoma"))
             if self.IsVertical():
-                dc.DrawText(str(self._counters), 8, 68)
+                dc.DrawText(str(self._counters), 8, 48)
             else:
-                dc.DrawText(str(self._counters), 7, 42)
+                dc.DrawText(str(self._counters), 7, 22)
 
 class Note(GameObject):
     def __init__(self, parent, pos, game):
