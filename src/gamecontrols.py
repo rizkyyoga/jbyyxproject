@@ -82,7 +82,7 @@ class GameObject(wx.Window):
 
 class ConsoleCtrl(wx.TextCtrl):
     def __init__(self, parent):
-        wx.TextCtrl.__init__(self, parent, pos=(703,684), size=(154,-1), style=wx.TE_PROCESS_ENTER)
+        wx.TextCtrl.__init__(self, parent, pos=(703,744), size=(240,-1), style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnPressEnter)
 
     def OnPressEnter(self, event):
@@ -174,7 +174,7 @@ class GamePanel(wx.Panel):
         #self._messagectrl = wx.html.HtmlWindow(self, pos=(703,370), size=(154,330))
         #self._messagectrl.SetFonts('Tahoma','Tahoma',[8,8,8,8,8,8,8])
         #self._messagetext = ''
-        self._messagectrl = wx.richtext.RichTextCtrl(self, pos=(703,370), size=(154,310), style=wx.richtext.RE_MULTILINE|wx.richtext.RE_READONLY|wx.NO_BORDER)
+        self._messagectrl = wx.richtext.RichTextCtrl(self, pos=(703,420), size=(254,310), style=wx.richtext.RE_MULTILINE|wx.richtext.RE_READONLY|wx.NO_BORDER)
         self._messagectrl.BeginFont(wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma"))
         # Smiles
         #self._smiles = ['angel','angry','asd','baby','bana','bhua','biggrin','biglaugha','coffee','censored','byebye','confused','deer','disgust','eek','elf1','elf2','elf3','flamed1','flamed2','freddy','frown','frusta','ghgh','girl','goccia','guns','hammer','hippy','ghgh2','rofl','glass','blush','king','kiss','laugh','lingua','lol','lolly','look','love','mad','metal','ass','nono','no','o','oink','omg','ahsi','laughs','up','down','puke','rain','read','woot','rofl','roll','rolly','rosik','rotfl','sad','saint','sbang','sbav','scratch','ass2','ser','shocked','sigh','silly','smile','smoke','smokin','sheep','spiny','study','sure','talk','tongue','sad2','ueee','wave','woot','yuppi','zzz','afraid']
@@ -201,7 +201,7 @@ class GamePanel(wx.Panel):
         self._opponenthand = []
         self._opponentsidedeck = []
         self._opponentfusiondeck = []
-        #self._notes = []
+        self._notes = []
         self._serial = 0
         self._opponentserial = 0
         # Field
@@ -267,6 +267,9 @@ class GamePanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnHandMonsterPosition, item)
         # Menu 3
         self._game_menu = wx.Menu()
+        item = wx.MenuItem(self._game_menu, -1, 'New Note')
+        self._game_menu.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.OnNewNote, item)
         item = wx.MenuItem(self._game_menu, -1, self._engine.GetLangString('Graveyard'))
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGraveLClick, item)
@@ -291,12 +294,9 @@ class GamePanel(wx.Panel):
         item = wx.MenuItem(self._game_menu, -1, self._engine.GetLangString('Reset Game'))
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGamePopupResetGame, item)
-        #item = wx.MenuItem(self._game_menu, -1, 'New Note')
-        #self._game_menu.AppendItem(item)
-        #self.Bind(wx.EVT_MENU, self.OnNewNote, item)
         # Card Visualization
-        self._cardimagectrl = wx.StaticBitmap(self, -1, size=(136,200), pos=(712,2))
-        self._carddescriptionctrl = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_CENTRE, size=(154,158), pos=(703,206))
+        self._cardimagectrl = wx.StaticBitmap(self, -1, size=(136,200), pos=(762,2))
+        self._carddescriptionctrl = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_CENTRE, size=(254,208), pos=(703,206))
         # Hotkeys
         self._keyhandler = keyhandler.KeyHandler()
         self._hotkeys = {}
@@ -2988,7 +2988,7 @@ class OpponentFieldControl(wx.Panel):
 class DeckListControl(wx.Frame):
     def __init__(self, parent):
         self._game = parent
-        wx.Frame.__init__(self, parent, -1, 'Deck', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -2999,7 +2999,7 @@ class DeckListControl(wx.Frame):
 
 class OpponentDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent Deck', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3019,7 +3019,7 @@ class OpponentDeckListControl(wx.Frame):
 
 class OpponentGraveListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent Graveyard', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent Graveyard', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3030,7 +3030,7 @@ class OpponentGraveListControl(wx.Frame):
 
 class GraveListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Graveyard', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Graveyard', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(GraveListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
@@ -3050,7 +3050,7 @@ class GraveListDropTarget(wx.TextDropTarget):
 
 class OpponentRFGListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent RFG', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent RFG', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3061,7 +3061,7 @@ class OpponentRFGListControl(wx.Frame):
 
 class OpponentFusionDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "Opponent's Fusion-Deck", pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, "Opponent's Fusion-Deck", pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3072,7 +3072,7 @@ class OpponentFusionDeckListControl(wx.Frame):
 
 class FusionDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Fusion-Deck', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Fusion-Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(FusionDeckListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
@@ -3092,7 +3092,7 @@ class FusionDeckListDropTarget(wx.TextDropTarget):
 
 class RFGListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'RFG', pos=(400,300), size=(128,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'RFG', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(RFGListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
