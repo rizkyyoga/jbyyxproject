@@ -83,7 +83,7 @@ class GameObject(wx.Window):
 
 class ConsoleCtrl(wx.TextCtrl):
     def __init__(self, parent):
-        wx.TextCtrl.__init__(self, parent, pos=(703,744), size=(240,-1), style=wx.TE_PROCESS_ENTER)
+        wx.TextCtrl.__init__(self, parent, pos=(130,347), size=(185,-1), style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnPressEnter)
 
     def OnPressEnter(self, event):
