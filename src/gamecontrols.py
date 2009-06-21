@@ -79,6 +79,7 @@ class GameObject(wx.Window):
     def SetTexture(self, texture):
         self._texture = texture
         self.Refresh()
+        
 
 class ConsoleCtrl(wx.TextCtrl):
     def __init__(self, parent):
@@ -2296,7 +2297,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             return
         else:
             self.WriteMessage(args[0])
-
+    
     def OnCmdRoll(self, args):
         try:
             faces = int(args[0])
@@ -2304,7 +2305,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.WriteMessage('Argument error.')
         finally:
             self.RollDice(faces)
-
+    
     def OnClose(self, event=None):
         self.WriteDisconnectPacket()
         self._engine.Network.Close()
@@ -3355,7 +3356,7 @@ class ScoreControl(GameObject):
 
     def OnPlayerPopup(self):
         self.PopupMenu(self._player_menu)
-
+    
     def OnPlayerPopupSub2000(self, event):
         self.SetPlayerScoreDiff(-2000)
 
@@ -4238,3 +4239,4 @@ class EndPhaseControl(GameObject):
             dc.SetTextForeground(wx.WHITE)
         dc.DrawBitmap(self._texture, 0, 0, True)
         dc.DrawText("End", 20, 10)
+        
