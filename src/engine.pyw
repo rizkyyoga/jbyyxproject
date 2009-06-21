@@ -168,7 +168,7 @@ class Engine():
             li.append(card) #Aggiungo alla lista ogni carta
         li.sort(lambda x, y: cmp(x.Name, y.Name))
         return li
-
+    
     def FindCardByName(self, name):
         con = dbapi2.connect(os.path.join(self.BaseDirectory, 'cards.db')) #Mi connetto al db
         c = con.cursor() #Creo un oggetto cursor
