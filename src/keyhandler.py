@@ -130,10 +130,12 @@ class KeyHandler():
         if code == wx.WXK_ALT or code == wx.WXK_CONTROL or code == wx.WXK_SHIFT: 
             return
         code = getCode(code,mod)
-        try:
-            code = unicode(code)
-        except:
-            return
+        #try:
+        #    code = chr(code)
+        #except:
+        #    return False
         for c in self._handlers.keys():
             if code == c:
                 self._handlers.get(code)()
+                return True
+        return False
