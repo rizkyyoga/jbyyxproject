@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-__appname__ = 'moose'
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __changelog__ = '''0.1.4
 Updated cards databaze. Fixed rooms feature. Small changes in design. Synchro support.
 To do:
