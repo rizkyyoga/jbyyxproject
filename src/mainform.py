@@ -645,7 +645,16 @@ class MainFrame(wx.Frame):
 
     # Update Check
     def OnUpdate(self, event=None):
-      print "Feature is disabled"
+        ud = updater.UpdateDialog(self, self.Engine)
+        """toupdate = updater.CheckUpdate(self.Engine.BaseDirectory)
+        if len(toupdate) > 0:
+            if self.ShowDialog(self.Engine.GetLangString('An update is avaible, would you like to update now?'),'',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT) == wx.ID_YES:
+                updater.Update(self.Engine.BaseDirectory,toupdate)
+                self.ShowDialog(self.Engine.GetLangString('Now you can restart the application.'),'',wx.OK | wx.ICON_INFORMATION)
+                sys.exit()
+        else:
+            self.ShowDialog(self.Engine.GetLangString('No update needed.'), '', wx.OK | wx.ICON_INFORMATION)"""
+
 
     # Mostra la finestra About
     def OnAbout(self, event = None):
