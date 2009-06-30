@@ -16,75 +16,63 @@
 #    along with moose; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import sys, os, wx, time, datetime, re, urllib, thread, traceback, socket
+import sys, os, wx, time, re, urllib
 from xml.dom import minidom
 from sqlite3 import dbapi2
 import version, mainform, gamecard, settings, skin, language, deck, xmlhandler
-import network, gameframe, dialogs, updater, keyhandler, cache
+import network, gameframe, dialogs, updater, keyhandler
 
 def ListDirs(path):
-    '''Returns the list of all dirs in path'''
-    rd = os.listdir(path)
-    dirs = []
+    '''Metodo che ritorna una lista contenente tute le directory trovate in <path>'''
+    rd = os.listdir(path) # Ottengo la lista di file nel path dato
+    dirs = [] # La lista che conterra' le directory
     for s in rd:
-        dp = os.path.join(path,s)
-        if os.path.isdir(dp):
-            dirs.append(dp)
-    return dirs
+        dp = os.path.join(path,s) # Creo una stringa che rappresenta il path del file/directory
+        if os.path.isdir(dp): # Testo se e' una directory
+            dirs.append(dp) # La aggiungo alla lista
+    return dirs # Ritorno la lista
 
 def ListFiles(path):
-    '''Returns the list of all files in path'''
-    rd = os.listdir(path)
-    files = []
+    '''Metodo che ritorna una lista contenente tute i files trovati in <path>'''
+    rd = os.listdir(path) # Ottengo la lista di file nel path dato
+    files = [] # La lista che conterra' le directory
     for s in rd:
-        dp = os.path.join(path,s)
-        if os.path.isfile(dp):
-            files.append(dp)
-    return files
+        dp = os.path.join(path,s) # Creo una stringa che rappresenta il path del file/directory
+        if os.path.isfile(dp): # Testo se e' un file
+            files.append(dp) # La aggiungo alla lista
+    return files # Ritorno la lista
 
-# Main Class of the Application
+# Classe engine
 class Engine():
 
+    #Metodo principale dell'applicazione
     def __init__(self):
-        # Check development mode
+        # Controllo se viene lanciata per lo sviluppo
         self._dev = False
         if len(sys.argv) > 1:
             if sys.argv[1] == 'dev':
                 self._dev = True
 
-        self.Application = wx.App() # Create App
+        self.Application = wx.App() # Inizializzo l'applicazione
 
-        # Paths Initializations
+        # Inizializzo delle variabili contenenti le path delle varie directory
         self.BaseDirectory = ''
-        found = 0
         if self._dev:
             self.BaseDirectory = os.path.dirname(os.path.realpath(__file__)) # BaseDirectory
-            if os.path.exists(os.path.join(self.BaseDirectory,'engine.pyw')):
-                found = 1
-        if not found:
-            if sys.platform == 'win32':
-                self.BaseDirectory = os.path.join(os.environ.get('PROGRAMFILES'),'Moose','src')
-                if os.path.exists(os.path.join(self.BaseDirectory,'engine.pyw')):
-                    found = 1
-            elif sys.platform == 'linux2':
-                self.BaseDirectory = os.path.join(os.environ.get('HOME'),'.moose','src')
-                if os.path.exists(os.path.join(self.BaseDirectory,'engine.pyw')):
-                    found = 1
-        if not found:
+        elif sys.platform == 'win32':
+            self.BaseDirectory = os.path.join(os.environ.get('PROGRAMFILES'),'Moose','src')
+        elif sys.platform == 'linux2':
+            self.BaseDirectory = os.path.join(os.environ.get('HOME'),'.moose','src')
+        else:
             self.BaseDirectory = os.getcwd()
-            if os.path.exists(os.path.join(self.BaseDirectory,'engine.pyw')):
-                found = 1
-        if not found:
-            sys.exit()
 
         splash = wx.SplashScreen(wx.Bitmap(os.path.join(self.BaseDirectory, 'splash.png'), wx.BITMAP_TYPE_PNG), wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_NO_TIMEOUT, 0, None, -1)
         self.SkinsDirectory = os.path.join(self.BaseDirectory, 'Skins') # Skins Directory
         self.LanguagesDirectory = os.path.join(self.BaseDirectory, 'Languages') # Languages Directory
         self.DecksDirectory = os.path.join(self.BaseDirectory, 'Decks') # Decks Directory
         self.ImagesDirectory = os.path.join(self.BaseDirectory, 'Images') # Images Directory
-        self.LogPath = os.path.join(self.BaseDirectory,'logs.txt') # Log Path
 
-        # Dirs creation if they don't exists
+        #Creo le directory se non esistono
         if not os.path.exists(self.SkinsDirectory):
             os.mkdir(self.SkinsDirectory)
         if not os.path.exists(self.LanguagesDirectory):
@@ -94,204 +82,58 @@ class Engine():
         if not os.path.exists(self.ImagesDirectory):
             os.mkdir(self.ImagesDirectory)
 
-        splash.Refresh() # Refresh the Splash Screen
-    
-        self.Settings = settings.LoadSettings(self.BaseDirectory) # Load settings
-        self.SaveSettings()
-
-        # Exceptions Report
-        if self.GetSetting("Report-Exceptions") == "Yes":
-            log = self.ReadLog()
-            if log.count('Exception:') > 0:
-                thread.start_new_thread(self.SendReport, (log,))
-    
-        # Log Creation
-        self.CreateLog()
-
-        splash.Refresh() # Refresh the Splash Screen
-
-        # Ip Address
+        # Variabile che contiene l'ip
         self._ip = ''
+    
+        self.Settings = settings.LoadSettings(self.BaseDirectory) # Carico le impostazioni
 
         # Update Check
         if self.GetSetting('Update') == 'Yes':
-            if updater.CheckVersionUpdate(self.GetVersion()):
-                toupdate = updater.CheckUpdate(self.BaseDirectory)
-                if len(toupdate) > 0:
-                    if wx.MessageDialog(None,'An update is avaible,\nwould you like to update now?','',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT).ShowModal() == wx.ID_YES:
-                        updater.Update(self.BaseDirectory,toupdate)
-                        wx.MessageDialog(None,'Now you can restart the application.','',wx.OK | wx.ICON_INFORMATION).ShowModal()
-                        sys.exit()
-
-        splash.Refresh() # Refresh the Splash Screen
+            toupdate = updater.CheckUpdate(self.BaseDirectory)
+            if len(toupdate) > 0:
+                if wx.MessageDialog(None,'An update is avaible,\nwould you like to update now?','',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT).ShowModal() == wx.ID_YES:
+                    updater.Update(self.BaseDirectory,toupdate)
+                    wx.MessageDialog(None,'Now you can restart the application.','',wx.OK | wx.ICON_INFORMATION).ShowModal()
+                    sys.exit()
 
         self.Skins = skin.LoadSkins(self.SkinsDirectory) # Carico le skin
         self.Languages = language.LoadLanguages(self.LanguagesDirectory) # Carico i languages
-        
-        self.DatabaseCardsCount = len(self.GetAllCards()) # Inizializzo una variabile contenente il totale delle carte
-        
-        splash.Refresh() # Refresh the Splash Screen
 
-        self.Frame = mainform.MainFrame(engine=self, parent=None, title="Moose.Deck",size=(800,640)) #Inizializzo il frame
-        self.Frame.SetIcon(wx.IconFromLocation(wx.IconLocation(os.path.join(self.BaseDirectory,'moose16x16.ico'))))
-        
-        # New Deck
+        # Creo un nuovo deck
         self.Deck = deck.Deck()
         self.DeckPath = ''
 
-        splash.Refresh() # Refresh the Splash Screen
-
-        # Last Deck Check
+        self.DatabaseCardsCount = len(self.GetAllCards()) # Inizializzo una variabile contenente il totale delle carte
+        
+        self.Frame = mainform.MainFrame(engine=self, parent=None, title="J_PROJECT Deck Construction",size=(800,640)) #Inizializzo il frame
+        self.Frame.SetIcon(wx.IconFromLocation(wx.IconLocation(os.path.join(self.BaseDirectory,'J_16x16.ico'))))
+        
         if self.GetSetting('OpenLastDeck') == 'Yes':
             lastdeckpath = self.GetSetting('LastDeckPath')
             if lastdeckpath and os.path.exists(lastdeckpath):
                 self.Frame.OnOpen(path=lastdeckpath)
 
-        # Usage statistics
-        if self.GetSetting("Usage-Stats") == "Yes":
-            thread.start_new_thread(self.SendStats, (self,))
-
-        # Cards' Images Cache
-        self._imagecache = cache.Cache()
-        self._scaledimagecache = cache.Cache()
-
-        splash.Refresh() # Refresh the Splash Screen
-        time.sleep(0.5) # Sleep 0.5 seconds
-        splash.Close() # Close the Splash Screen
-        self.Frame.Show() # Show the Frame
-        self.Application.MainLoop() # Application MainLoop
-
-    def CheckMissingImages(self):
-        '''Check for missing images'''
-        cards = self.GetAllCards()
-        l = self.DownloadImageList()
-        m = []
-        for c in cards:
-            if not os.path.exists(os.path.join(self.ImagesDirectory, c.Name + '.jpg')) and l.count(c.Name + '.jpg') > 0:
-                m.append(c.Name)
-        return m
-
-    def DownloadImage(self, n):
-        '''Download missing images'''
-        if not self.CheckConnection():
-            return 0
-        url = 'http://mooseproject.googlecode.com/svn/branches/images/%s.jpg' % n
-        try:
-            urllib.urlretrieve(url, os.path.join(self.ImagesDirectory,'%s.jpg'%n))
-            return 1
-        except: pass
-        return 0
-
-    def DownloadImageList(self):
-        if not self.CheckConnection():
-            return ''
-        url = 'http://mooseproject.googlecode.com/svn/branches/images/'
-        s = ''
-        try: 
-            u = urllib.urlopen(url)
-            while 1:
-                r = u.read()
-                if r == '': break
-                else: s += r
-        except: pass
-        return s
-        
-
-    def CheckConnection(self):
-        '''Checks if an internet connection is avaible'''
-        if self.GetIp():
-            return True
-        else:
-            return False
-
-    def SendReport(self, log, *args):
-        '''Report the current Log'''
-        url = 'http://mooseproject.000webhost.com/rooms/report.php?log=%s'%urllib.quote(log)
-        urllib.urlopen(url)
-
-    def TimeStamp(self):
-        '''Return the TimeStamp'''
-        t = datetime.datetime.now().timetuple()
-        return '%s-%s-%s-%s:%s:%s'%(t[0],t[1],t[2],t[3],t[4],t[5])
-    
-    def DateStamp(self):
-        '''Return the DateStamp'''
-        t = datetime.datetime.now().timetuple()
-        return '%s-%s-%s'%(t[0],t[1],t[2])
-
-    def CreateLog(self):
-        '''Create the application log'''
-        s = 'Session %s' % self.DateStamp()
-        l = self.ReadLog()
-        if os.path.exists(self.LogPath) and l.count(s) > 0:
-            handle = open(self.LogPath, 'a')
-        else:
-            handle = open(self.LogPath, 'w')
-        handle.write('Session %s\n' % self.TimeStamp())
-        handle.close()
-
-    def WriteLog(self, log):
-        '''Write to the current log'''
-        handle = open(self.LogPath,'a')
-        handle.write('%s: %s\n'%(self.TimeStamp(),log))
-        handle.close()
-
-    def WriteExceptionLog(self):
-        '''Write the last exception to the current log'''
-        e = self.FormatException()
-        a = ''
-        for s in e[2]:
-            if a: a += ' '
-            a += s
-        log = 'Exception: %s - %s - %s\n'%(e[0],e[1],a)
-        handle = open(self.LogPath,'a')
-        handle.write('%s: %s\n'%(self.TimeStamp(),log))
-        handle.close()
-
-    def ReadLog(self):
-        '''Return the current log'''
-        path = os.path.join(self.BaseDirectory,'logs.txt')
-        if os.path.exists(path):
-            handle = open(path,'r')
-            log = handle.read()
-            handle.close()
-        else:
-            log = ''
-        return log
-
-    def FormatException(self, maxtb=5):
-        '''Exception Formatting'''
-        cla, exc, trbk = sys.exc_info()
-        excName = cla.__name__
-        try: excArgs = exc.__dict__["args"]
-        except KeyError: excArgs = "<no args>"
-        excTb = traceback.format_tb(trbk, maxtb)
-        return (excName, excArgs, excTb)
-
-    def SendStats(self, *args):
-        '''Send the application usage'''
-        try: urllib.urlopen('http://mooseproject.000webhost.com/rooms/stats.php')
-        except: pass
+        splash.Refresh() # Refresh Splash
+        time.sleep(1) # Sleep di 1 secondo per mostrare lo splash :P
+        splash.Close() # Chiudo lo splash
+        self.Frame.Show() # Mostro il frame
+        self.Application.MainLoop() # Loop dell'applicazione
 
     def GetIp(self):
-        '''Return the current ip'''
-        socket.setdefaulttimeout(30)
         if not self._ip:
             try:
                 l = re.findall('(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)', urllib.urlopen("http://checkip.dyndns.org/").read())[0]
                 self._ip = '%s.%s.%s.%s' % (l[0],l[1],l[2],l[3])
             except:
                 self._ip == ''
-        socket.setdefaulttimeout(None)
         return self._ip
 
     def GetSmile(self, name):
-        '''Return the path of a smile'''
-        return self.GetSkin().GetPath(name)
         #if os.path.exists(os.path.join(self.SmilesDirectory,name + '.gif')):
         #    return os.path.join(self.SmilesDirectory,name + '.gif')
         #else:
         #    return os.path.join(self.SmilesDirectory,'none.gif')
+        return self.GetSkin().GetPath(name)
 
     def GetName(self):
         return version.GetName()
@@ -326,7 +168,7 @@ class Engine():
             li.append(card) #Aggiungo alla lista ogni carta
         li.sort(lambda x, y: cmp(x.Name, y.Name))
         return li
-
+    
     def FindCardByName(self, name):
         con = dbapi2.connect(os.path.join(self.BaseDirectory, 'cards.db')) #Mi connetto al db
         c = con.cursor() #Creo un oggetto cursor
@@ -338,6 +180,7 @@ class Engine():
     def FinCardByNameAndExp(self, exp, name):
         li = self.FindCardByNameLike(name)
         for c in li:
+            print c.Name
             if c.Code.upper().count(exp.upper()):
                 card = c
                 break
@@ -376,6 +219,9 @@ class Engine():
                 elif li[3] == 'Fusion':
                     if c.Type.count('Fusion'):
                         s1.append(c)
+                elif li[3] == 'Synchro':
+                    if c.Type.count('Synchro'):
+                        s1.append(c)    
                 elif li[3] == 'Ritual':
                     if c.Type.count('Ritual'):
                         s1.append(c)
@@ -462,6 +308,8 @@ class Engine():
                 return self.GetSkinImage('SpellList')
             elif c.IsFusion():
                 return self.GetSkinImage('FusionList')
+            elif c.IsSynchro():
+                return self.GetSkinImage('SynchroList')
             elif c.IsNormalMonster():
                 return self.GetSkinImage('MonsterList')
             else:
@@ -476,6 +324,8 @@ class Engine():
         if att != 'Spell' and att != 'Trap':# Scelgo lo sfondo adatto
             if ty.find('Fusion') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 60, 88)
+            elif ty.find('Synchro') > -1:
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 60, 88)              
             elif ty.find('Ritual') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Ritual'), 60, 88)
             elif ty.find('Token') > -1:
@@ -503,6 +353,8 @@ class Engine():
         if att != 'Spell' and att != 'Trap':# Scelgo lo sfondo adatto
             if ty.find('Fusion') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 60, 88)
+            elif ty.find('Synchro') > -1:
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 60, 88)     
             elif ty.find('Ritual') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Ritual'), 60, 88)
             elif ty.find('Token') > -1:
@@ -528,6 +380,8 @@ class Engine():
         if c.Attribute != 'Spell' and c.Attribute != 'Trap':# Scelgo lo sfondo adatto
             if c.Type.find('Fusion') > -1:
                 BackSkin =self.GetSkinImage('Fusion')
+            elif c.Type.find('Synchro') > -1:
+                BackSkin = self.GetSkinImage('Synchro')
             elif c.Type.find('Ritual') > -1:
                 BackSkin = self.GetSkinImage('Ritual')
             elif c.Type.find('Token') > -1:
@@ -603,30 +457,18 @@ class Engine():
         return wx.BitmapFromImage(img.Rotate90())
 
     def GetImageCardScaled(self, name):
-        if self._scaledimagecache.Contains(name):
-            img = self._scaledimagecache.GetObj(name)
-            return img.GetSubBitmap(wx.Rect(0, 0, img.GetWidth(), img.GetHeight()))
-        else:
-            path = os.path.join(self.ImagesDirectory, name + '.jpg')
-            if os.path.exists(path):
-                image = wx.Image(path)
-                image.Rescale(45, 45, wx.IMAGE_QUALITY_HIGH)
-                bmp = wx.BitmapFromImage(image)
-                self._scaledimagecache.AddObj(bmp,name)
-                return bmp
-        return self.GetSkinImage('none')
+        path = os.path.join(self.ImagesDirectory, name + '.jpg')
+        if os.path.exists(path):
+            image = wx.Image(path)
+            image.Rescale(45, 45, wx.IMAGE_QUALITY_HIGH)
+            return wx.BitmapFromImage(image)
+        return -1
 
     def GetImageCard(self, name):
-        if self._imagecache.Contains(name):
-            img = self._imagecache.GetObj(name)
-            return img.GetSubBitmap(wx.Rect(0, 0, img.GetWidth(), img.GetHeight()))
-        else:
-            path = os.path.join(self.ImagesDirectory, name + '.jpg')
-            if os.path.exists(path):
-                img = wx.Bitmap(path)
-                self._imagecache.AddObj(img,name)
-                return img
-        return self.GetSkinImage('none')
+        path = os.path.join(self.ImagesDirectory, name + '.jpg')
+        if os.path.exists(path):
+            return wx.Bitmap(path)
+        return -1
 
     def GetSkin(self): # Metodo che ritorna la skin usata
         key = self.GetSetting('Skin')
@@ -659,41 +501,6 @@ class Engine():
 
     def GetLangName(self):
         return self.GetSetting('Language')
-
-    def GetAllFonts(self):
-        d = {}
-        for k in self.Settings.keys():
-            if k.startswith('Font-'):
-                p = self.Settings[k].split(':')
-                
-                if p[1] == 'Italic':
-                    st = wx.FONTSTYLE_ITALIC
-                elif p[1] == 'Max':
-                    st = wx.FONTSTYLE_MAX
-                elif p[1] == 'Slant':
-                    st = wx.FONTSTYLE_SLANT
-                else:
-                    st = wx.FONTSTYLE_NORMAL
-                
-                if p[2] == 'Bold':
-                    we = wx.FONTWEIGHT_BOLD
-                elif p[2] == 'Light':
-                    we = wx.FONTWEIGHT_LIGHT
-                elif p[2] == 'Max':
-                    we = wx.FONTWEIGHT_MAX
-                else:
-                    we = wx.FONTWEIGHT_NORMAL
-                
-                f = wx.Font(pointSize=int(p[0]),family=wx.FONTFAMILY_DEFAULT,style=st,weight=we,faceName=p[3])
-                d[k[5:]] = f
-        return d
-
-    def GetAllFontsName(self):
-        l = []
-        for k in self.Settings.keys():
-            if k.startswith('Font-'):
-                l.append(k[5:])
-        return l
 
     def GetAllHotkeys(self):
         d = {}
