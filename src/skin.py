@@ -27,6 +27,7 @@ class skin():
 
     def __init__(self,p):
         self.path = p
+        self.images = dict()
         self.props = dict()
         self.name = ''
         xmldoc = xmlhandler.LoadXml(os.path.join(self.path,'skin.xml'))
@@ -34,14 +35,17 @@ class skin():
         for node in xmldoc.firstChild.childNodes:
             if not node.getAttribute('name') == 'Name':
                 self.props[node.getAttribute('name')] = node.getAttribute('value')
+                #self.images[node.getAttribute('name')] = wx.Bitmap(os.path.join(self.path, node.getAttribute('value')))
             else:
                 self.name = node.getAttribute('value')
     
     def GetImage(self,name):
-        if not self.props.has_key(name):
-            return None
-        file = os.path.join(self.path, self.props[name])
-        return wx.Bitmap(file)
+        if self.images.has_key(name): 
+            return self.images[name].GetSubBitmap(wx.Rect(0, 0, self.images[name].GetWidth(), self.images[name].GetHeight()))
+        elif self.props.has_key(name):
+            self.images[name] = wx.Bitmap(self.GetPath(name))
+            return self.images[name].GetSubBitmap(wx.Rect(0, 0, self.images[name].GetWidth(), self.images[name].GetHeight()))
+        else: return self.GetImage('none')
 
     def GetPath(self,name):
         file = os.path.join(self.path, self.props[name])
