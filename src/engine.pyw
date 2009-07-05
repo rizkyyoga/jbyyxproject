@@ -118,6 +118,49 @@ class Engine():
         splash.Close() # Chiudo lo splash
         self.Frame.Show() # Mostro il frame
         self.Application.MainLoop() # Loop dell'applicazione
+    
+    def CheckMissingImages(self):
+        '''Check for missing images'''
+        cards = self.GetAllCards()
+        l = self.DownloadImageList()
+        m = []
+        for c in cards:
+            if not os.path.exists(os.path.join(self.ImagesDirectory, c.Name + '.jpg')) and l.count(c.Name + '.jpg') > 0:
+                m.append(c.Name)
+        return m
+
+    def DownloadImage(self, n):
+        '''Download missing images'''
+        if not self.CheckConnection():
+            return 0
+        url = 'http://jbyyxproject.googlecode.com/svn/src/Images/%s.jpg' % n
+        try:
+            urllib.urlretrieve(url, os.path.join(self.ImagesDirectory,'%s.jpg'%n))
+            return 1
+        except: pass
+        return 0
+
+    def DownloadImageList(self):
+        if not self.CheckConnection():
+            return ''
+        url = 'http://jbyyxproject.googlecode.com/svn/src/Images/'
+        s = ''
+        try: 
+            u = urllib.urlopen(url)
+            while 1:
+                r = u.read()
+                if r == '': break
+                else: s += r
+        except: pass
+        return s
+    
+    def CheckConnection(self):
+        '''Checks if an internet connection is avaible'''
+        if self.GetIp():
+            return True
+        else:
+            return False
+    
 
     def GetIp(self):
         if not self._ip:
