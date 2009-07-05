@@ -293,7 +293,12 @@ class MainFrame(wx.Frame):
         item.SetBitmap(self.Engine.GetSkinImage('Update'))
         self.Bind(wx.EVT_MENU, self.OnUpdate, item)
         self.mHelp.AppendItem(item)
-
+    
+        item = wx.MenuItem(self.mHelp,-1,self.Engine.GetLangString('Images Update'))
+        #item.SetBitmap(self.Engine.GetSkinImage('Update'))
+        self.Bind(wx.EVT_MENU, self.OnImagesUpdate, item)
+        self.mHelp.AppendItem(item)
+    
         item = wx.MenuItem(self.mHelp,ID_WEB,self.Engine.GetLangString('J_PROJECT.Web'))
         item.SetBitmap(self.Engine.GetSkinImage('Web'))
         self.Bind(wx.EVT_MENU, self.OnWeb, item)
@@ -433,7 +438,14 @@ class MainFrame(wx.Frame):
         self.Engine.GameFrame.Show()
 
     def OnRoomsMenu(self, event):
-      print "this feature is disabled."
+        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
+        self.Engine.Game = self.Engine.GameFrame.Game
+        self.Engine.Network = network.Network(self.Engine.Game)
+        dialog = room.Login(self)
+        dialog.ShowModal()
+        try: dialog.EndTimer()
+        except: pass
+        
     
     def OnAdvancedSearchMenu(self, event):
         self.AdvancedSearchFrame.Show()
@@ -655,6 +667,9 @@ class MainFrame(wx.Frame):
         else:
             self.ShowDialog(self.Engine.GetLangString('No update needed.'), '', wx.OK | wx.ICON_INFORMATION)"""
 
+    def OnImagesUpdate(self, event=None):
+        '''Images Updating'''
+        updater.ImagesUpdateDialog(self, self.Engine)
 
     # Mostra la finestra About
     def OnAbout(self, event = None):
