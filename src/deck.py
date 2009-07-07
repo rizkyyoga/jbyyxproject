@@ -50,7 +50,7 @@ class Deck():
     def GetMonsters(self):
         li = []
         for c in self.Cards:
-            if not c.IsSide and c.Type != 'Spell Card' and c.Type != 'Trap Card' and c.Type.find('Fusion') == -1 and c.Type.find('Synchro') == -1:
+            if not c.IsSide and c.Type != 'Spell Card' and c.Type != 'Trap Card' and c.Type.find('Fusion') == -1 and c.Type.find('Synchro') == -1 and c.Type.find('Token') == -1:
                 li.append(c)
         return li
 
@@ -74,7 +74,7 @@ class Deck():
     def GetGameCards(self):
         li = []
         for c in self.Cards:
-            if c.IsSide == False and c.Type.find('Fusion') == -1:
+            if c.IsSide == False and c.Type.find('Fusion') == -1 and c.Type.find('Synchro') == -1 and c.Type.find('Token') == -1:
                 li.append(c)
         return li
 
