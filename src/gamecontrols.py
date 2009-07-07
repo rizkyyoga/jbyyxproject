@@ -898,7 +898,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshGrave()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_PLAYER)
-
+    
     def OnCardFieldToRFG(self, event=None):
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_RFG)
@@ -1017,14 +1017,23 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Hide()
         card.Show()
         self.WriteGameMessage(self._engine.GetLangString('turned ') + card.GetCardName() + self._engine.GetLangString(' vertical.'), CHAT_OPPONENT)
-
+    
+    def OnOpponentCardFieldToFusionDeck(self, event=None):
+        card = self._opponentcurrentcard
+        self.MoveCard(self._opponentfield, self._opponentfusiondeck, card)
+        card.SetCardState(POS_OPP_FUSIONDECK)
+        card.Reparent(self._opponentfusiondecklistctrl)
+        self.RefreshOpponentFusionDeck()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to his Extra Deck.', card.GetCardName()), CHAT_OPPONENT)
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
+   
     def OnOpponentCardFieldToGrave(self, event=None):
         card = self._opponentcurrentcard
         self.MoveCard(self._opponentfield, self._opponentgrave, card)
         card.SetCardState(POS_OPP_GRAVE)
         card.Reparent(self._opponentgravelistctrl)
         self.RefreshOpponentGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to his Graveyard.', card.GetCardName()), CHAT_OPPONENT)
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
 
     def OnOpponentCardFieldToRFG(self, event=None):
@@ -1221,6 +1230,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentGrave()
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
 
+
     def OnOpponentCardGraveToRFG(self, event=None):
         card = self._opponentcurrentcard
         self.MoveCard(self._opponentgrave, self._opponentrfg, card)
@@ -1229,6 +1239,15 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentRFG()
         self.RefreshOpponentGrave()
         self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.'), CHAT_OPPONENT)
+    
+    def OnOpponentCardGraveToFusionDeck(self, event=None):
+        card = self._opponentcurrentcard
+        self.MoveCard(self._opponentgrave, self._opponentfusiondeck, card)
+        card.SetCardState(POS_OPP_FUSIONDECK)
+        card.Reparent(self._opponentfusiondecklistctrl)
+        self.RefreshOpponentFusionDeck()
+        self.RefreshOpponentGrave()
+        self.WriteGameMessage(self._engine.GetLangString('Send ') + card.GetCardName() + self._engine.GetLangString(' to his Extra deck.'), CHAT_OPPONENT)
 
     def OnOpponentCardGraveToField(self, event=None):
         card = self._opponentcurrentcard[0]
@@ -1386,6 +1405,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentRFG()
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
 
+    def OnOpponentCardRFGToFusionDeck(self, event=None):
+        card = self._opponentcurrentcard
+        self.MoveCard(self._opponentrfg, self._opponentfusiondeck, card)
+        card.SetCardState(POS_OPP_FUSIONDECK)
+        card.Reparent(self._opponentfusiondecklistctrl)
+        self.RefreshOpponentFusionDeck()
+        self.RefreshOpponentRFG()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to his Extra Deck.', card.GetCardName()), CHAT_OPPONENT)
+    
     def OnOpponentCardRFGToGrave(self, event=None):
         card = self._opponentcurrentcard
         self.MoveCard(self._opponentrfg, self._opponentgrave, card)
@@ -3568,6 +3597,12 @@ class CardControl(GameObject, wx.DataObjectSimple):
             return True
         else:
             return False
+    
+    def IsToken(self):
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Token') > 0:
+            return True
+        else:
+            return False
 
     def IsRitual(self):
         if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Ritual') > 0: return True
@@ -3817,6 +3852,10 @@ class OpponentCardControl(GameObject):
     
     def IsSynchro(self):
         if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Synchro') > 0: return True
+        else: return False
+    
+    def IsToken(self):
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Token') > 0: return True
         else: return False
 
     def IsRitual(self):

@@ -438,13 +438,7 @@ class MainFrame(wx.Frame):
         self.Engine.GameFrame.Show()
 
     def OnRoomsMenu(self, event):
-        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
-        self.Engine.Game = self.Engine.GameFrame.Game
-        self.Engine.Network = network.Network(self.Engine.Game)
-        dialog = room.Login(self)
-        dialog.ShowModal()
-        try: dialog.EndTimer()
-        except: pass
+        print "this feature is disabled."
         
     
     def OnAdvancedSearchMenu(self, event):
@@ -694,4 +688,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         info.AddArtist("Alexandre 'sa-ki' Moore")
         info.AddArtist("J_BYYX")
         info.AddArtist("TheBeast")
+        info.AddArtist("igry")
+        info.AddArtist("flamewingbeast")
+        info.AddArtist("Djordje Vasiljevic(Charmed94)")
+        info.AddTranslator("Djordje Vasiljevic(Charmed94)")
+        info.AddTranslator("J_BYYX-Lietuviu")
         wx.AboutBox(info)
