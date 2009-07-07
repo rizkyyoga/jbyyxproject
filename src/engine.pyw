@@ -60,7 +60,7 @@ class Engine():
         if self._dev:
             self.BaseDirectory = os.path.dirname(os.path.realpath(__file__)) # BaseDirectory
         elif sys.platform == 'win32':
-            self.BaseDirectory = os.path.join(os.environ.get('PROGRAMFILES'),'Moose','src')
+            self.BaseDirectory = os.path.join(os.environ.get('PROGRAMFILES'),'J_PROJECT','src')
         elif sys.platform == 'linux2':
             self.BaseDirectory = os.path.join(os.environ.get('HOME'),'.moose','src')
         else:
