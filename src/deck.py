@@ -81,7 +81,7 @@ class Deck():
     def GetFusions(self):
         li = []
         for c in self.Cards:
-            if c.Type.find('Fusion') > -1 or c.Type.find('Synchro') > -1:
+            if c.Type.find('Fusion') > -1 or c.Type.find('Synchro') > -1 or c.Type.find('Token') > -1:
                 li.append(c)
         return li
 
