@@ -135,7 +135,7 @@ class Engine():
             return 0
         url = 'http://jbyyxproject.googlecode.com/svn/src/Images/%s.jpg' % n
         try:
-            urllib.urlretrieve(url, os.path.join(self.ImagesDirectory,'%s.jpg'%n))
+            urllib.urlretrieve(url.replace(" ", "%20"), os.path.join(self.ImagesDirectory,'%s.jpg'%n))
             return 1
         except: pass
         return 0
