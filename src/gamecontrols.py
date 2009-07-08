@@ -770,6 +770,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             item = wx.MenuItem(menu, -1, self._engine.GetLangString('To RFG'))
             menu.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.OnCardFieldToRFG, item)
+            item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Extra Deck'))
+            menu.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.OnCardFieldToFusionDeck, item)
             if c.IsVertical():
                 item = wx.MenuItem(menu, -1, self._engine.GetLangString('Horizontal'))
                 menu.AppendItem(item)
@@ -794,6 +797,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             item = wx.MenuItem(menu, -1, self._engine.GetLangString('To RFG'))
             menu.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.OnCardFieldToRFG, item)
+            item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Extra Deck'))
+            menu.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.OnCardFieldToFusionDeck, item)
             if c.IsVertical():
                 item = wx.MenuItem(menu, -1, self._engine.GetLangString('Horizontal'))
                 menu.AppendItem(item)
