@@ -304,6 +304,10 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnWeb, item)
         self.mHelp.AppendItem(item)
 
+        item = wx.MenuItem(self.mHelp,-1,self.Engine.GetLangString('Forbidden List'))
+        #item.SetBitmap(self.Engine.GetSkinImage('Chat'))
+        self.Bind(wx.EVT_MENU, self.OnDiscussionChannelMenu, item)
+        self.mHelp.AppendItem(item)
 
 
         item = wx.MenuItem(self.mHelp,ID_ABOUT,self.Engine.GetLangString('About'))
@@ -636,6 +640,11 @@ class MainFrame(wx.Frame):
             webbrowser.open_new_tab('http://akademija.visiems.lt/')
         except: pass
 
+    def OnDiscussionChannelMenu(self, event=None):
+        try:
+            webbrowser.open_new_tab('http://yugioh.wikia.com/wiki/March_2009_Lists')
+        except: pass
+    
     def OnDuelChannelMenu(self, event=None):
         try:
             webbrowser.open_new_tab('http://webchat.azzurra.org/irc.cgi?chan=%23moose-duel')
