@@ -1102,7 +1102,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             menu.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.OnCardGraveToHand, item)
         else:
-            item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Fusion-Deck'))
+            item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Extra-Deck'))
             menu.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.OnCardGraveToFusionDeck, item)
         item = wx.MenuItem(menu, -1, self._engine.GetLangString('To RFG'))
