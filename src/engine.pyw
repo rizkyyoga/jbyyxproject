@@ -88,13 +88,13 @@ class Engine():
         self.Settings = settings.LoadSettings(self.BaseDirectory) # Carico le impostazioni
 
         # Update Check
-        if self.GetSetting('Update') == 'Yes':
+        '''if self.GetSetting('Update') == 'Yes':
             toupdate = updater.CheckUpdate(self.BaseDirectory)
             if len(toupdate) > 0:
                 if wx.MessageDialog(None,'An update is avaible,\nwould you like to update now?','',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT).ShowModal() == wx.ID_YES:
                     updater.Update(self.BaseDirectory,toupdate)
                     wx.MessageDialog(None,'Now you can restart the application.','',wx.OK | wx.ICON_INFORMATION).ShowModal()
-                    sys.exit()
+                    sys.exit()'''
 
         self.Skins = skin.LoadSkins(self.SkinsDirectory) # Carico le skin
         self.Languages = language.LoadLanguages(self.LanguagesDirectory) # Carico i languages
