@@ -637,7 +637,7 @@ class MainFrame(wx.Frame):
     # Apre il browser predefinito alla homepage di Moose
     def OnWeb(self, event=None):
         try:
-            webbrowser.open_new_tab('http://akademija.visiems.lt/')
+            webbrowser.open_new_tab('http://jproject.tk/')
         except: pass
 
     def OnDiscussionChannelMenu(self, event=None):
