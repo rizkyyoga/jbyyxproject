@@ -442,7 +442,13 @@ class MainFrame(wx.Frame):
         self.Engine.GameFrame.Show()
 
     def OnRoomsMenu(self, event):
-        print "this feature is disabled."
+        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
+        self.Engine.Game = self.Engine.GameFrame.Game
+        self.Engine.Network = network.Network(self.Engine.Game)
+        dialog = room.Login(self)
+        dialog.ShowModal()
+        try: dialog.EndTimer()
+        except: pass
         
     
     def OnAdvancedSearchMenu(self, event):
