@@ -666,7 +666,7 @@ class MainFrame(wx.Frame):
 
     # Update Check
     def OnUpdate(self, event=None):
-        #ud = updater.UpdateDialog(self, self.Engine)
+        ud = updater.UpdateDialog(self, self.Engine)
         toupdate = updater.CheckUpdate(self.Engine.BaseDirectory)
         if len(toupdate) > 0:
             if self.ShowDialog(self.Engine.GetLangString('An update is avaible, would you like to update now?'),'',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT) == wx.ID_YES:
