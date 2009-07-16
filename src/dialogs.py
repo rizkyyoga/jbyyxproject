@@ -208,14 +208,14 @@ class AdvancedSearch(wx.Dialog):
         self.CardSubTypeChoice.Hide()
         
         # Type2
-        li = ['Any','Aqua','Beast','Beast-Warrior','Dinosaur','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Zombie','Psychic','Tuner','Synchro']
+        li = ['Any','Aqua','Beast','Beast-Warrior','Dinosaur','Divine-Beast','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Zombie','Psychic']
         self.CardType2Text = wx.StaticText(self, -1, 'Type: ', pos = (12, 74))
         self.CardType2Text.Hide()
         self.CardType2Choice = wx.Choice(self, -1, pos=(90,69), size=(80,-1), choices=li)
         self.CardType2Choice.Hide()
         
         # Attributo Mostro
-        li = ['Any','Light','Dark','Earth','Wind','Fire']
+        li = ['Any','Light','Dark','Earth','Wind','Fire','Water','Divine']
         self.CardAttributeText = wx.StaticText(self, -1, 'Attribute: ', pos = (180, 74))
         self.CardAttributeChoice = wx.Choice(self, -1, pos = (248,69), size=(80,-1), choices = li)
         self.CardAttributeChoice.SetStringSelection('Any')
@@ -268,7 +268,7 @@ class AdvancedSearch(wx.Dialog):
         c = self.CardTypeChoice.GetStringSelection()
         if (c=='Monster'):
             self.CardSubTypeChoice.Clear()
-            self.CardSubTypeChoice.AppendItems(['Any','Normal','Effect','Fusion','Ritual','Synchro'])
+            self.CardSubTypeChoice.AppendItems(['Any','Normal','Effect','Fusion','Ritual','Synchro','Toon','Tuner','Gemini','Union'])
             self.CardSubTypeChoice.SetStringSelection('Any')
             self.CardSubTypeText.Show()
             self.CardSubTypeChoice.Show()
@@ -290,7 +290,7 @@ class AdvancedSearch(wx.Dialog):
             self.CardType2Choice.Show()
         elif (c == 'Spell'):
             self.CardSubTypeChoice.Clear()
-            self.CardSubTypeChoice.AppendItems(['Any','Continuous','Quick-Play','Equip','Field'])
+            self.CardSubTypeChoice.AppendItems(['Any','','Continuous','Quick-Play','Equip','Field'])
             self.CardSubTypeChoice.SetStringSelection('Any')
             self.CardSubTypeText.Show()
             self.CardSubTypeChoice.Show()
@@ -312,7 +312,7 @@ class AdvancedSearch(wx.Dialog):
             self.CardType2Choice.Hide()
         elif (c == 'Trap'):
             self.CardSubTypeChoice.Clear()
-            self.CardSubTypeChoice.AppendItems(['Any','Continuous','Counter'])
+            self.CardSubTypeChoice.AppendItems(['Any','','Continuous','Counter'])
             self.CardSubTypeChoice.SetStringSelection('Any')
             self.CardSubTypeText.Show()
             self.CardSubTypeChoice.Show()
