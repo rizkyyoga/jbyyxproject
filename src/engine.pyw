@@ -268,6 +268,18 @@ class Engine():
                 elif li[3] == 'Ritual':
                     if c.Type.count('Ritual'):
                         s1.append(c)
+                elif li[3] == 'Toon':
+                    if c.Type.count('Toon'):
+                        s1.append(c)
+                elif li[3] == 'Tuner':
+                    if c.Type.count('Tuner'):
+                        s1.append(c)
+                elif li[3] == 'Gemini':
+                    if c.Type.count('Gemini'):
+                        s1.append(c)
+                elif li[3] == 'Union':
+                    if c.Type.count('Union'):
+                        s1.append(c)
             s2 = []
             if li[4] == 'Any':
                 s2 = s1
