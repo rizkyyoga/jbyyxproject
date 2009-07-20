@@ -332,9 +332,9 @@ class MainFrame(wx.Frame):
         self.toolbar.AddLabelTool(ID_PRINT, 'Print', self.Engine.GetSkinImage('Print'), shortHelp = self.Engine.GetLangString('Print'), longHelp = self.Engine.GetLangString('Print current deck'))
         self.toolbar.AddSeparator()
         self.toolbar.AddLabelTool(ID_ADVANCED, 'Advanced Search', self.Engine.GetSkinImage('Find'), shortHelp = self.Engine.GetLangString('Advanced Search'), longHelp = self.Engine.GetLangString('Open the Advanced Search Form'))
-        self.toolbar.AddLabelTool(ID_ADD, 'Add card to current deck', self.Engine.GetSkinImage('Add'), shortHelp = self.Engine.GetLangString('Add'), longHelp = self.Engine.GetLangString('Add selected card to current deck'))
-        self.toolbar.AddLabelTool(ID_ADD_TO_SIDE, 'Add card to side deck', self.Engine.GetSkinImage('AddToSide'), shortHelp = self.Engine.GetLangString('Add To Side'), longHelp = self.Engine.GetLangString('Add selected card to current side deck'))
-        self.toolbar.AddLabelTool(ID_REMOVE, 'Remove card from deck', self.Engine.GetSkinImage('Remove'), shortHelp = self.Engine.GetLangString('Remove'), longHelp = self.Engine.GetLangString('Remove selected card from current deck'))
+        self.toolbar.AddLabelTool(ID_ADD, 'Add card to current deck', self.Engine.GetSkinImage('Todeck'), shortHelp = self.Engine.GetLangString('Add'), longHelp = self.Engine.GetLangString('Add selected card to current deck'))
+        self.toolbar.AddLabelTool(ID_ADD_TO_SIDE, 'Add card to side deck', self.Engine.GetSkinImage('Toside'), shortHelp = self.Engine.GetLangString('Add To Side'), longHelp = self.Engine.GetLangString('Add selected card to current side deck'))
+        self.toolbar.AddLabelTool(ID_REMOVE, 'Remove card from deck', self.Engine.GetSkinImage('Totrunk'), shortHelp = self.Engine.GetLangString('Remove'), longHelp = self.Engine.GetLangString('Remove selected card from current deck'))
         self.toolbar.Realize()
         self.Bind(wx.EVT_TOOL, self.OnAddCard, id=ID_ADD)
         self.Bind(wx.EVT_TOOL, self.OnAddCardToSide, id=ID_ADD_TO_SIDE)
@@ -350,11 +350,11 @@ class MainFrame(wx.Frame):
         # CardList Popup
         self.CardListPopupMenu = wx.Menu()
         item = wx.MenuItem(self.CardListPopupMenu,ID_POPUP_ADD,self.Engine.GetLangString('Add to deck'))
-        item.SetBitmap(self.Engine.GetSkinImage('Add'))
+        item.SetBitmap(self.Engine.GetSkinImage('Todeck'))
         self.Bind(wx.EVT_MENU, self.OnAddCard, item)
         self.CardListPopupMenu.AppendItem(item)
         item = wx.MenuItem(self.CardListPopupMenu,ID_POPUP_ADD_TO_SIDE,self.Engine.GetLangString('Add to side-deck'))
-        item.SetBitmap(self.Engine.GetSkinImage('AddToSide'))
+        item.SetBitmap(self.Engine.GetSkinImage('Toside'))
         self.Bind(wx.EVT_MENU, self.OnAddCardToSide, item)
         self.CardListPopupMenu.AppendItem(item)
         
@@ -403,7 +403,7 @@ class MainFrame(wx.Frame):
         self.SpellHeaderText.SetLabel('Spells: ' + str(self.SpellListCtrl.GetItemCount()))
         self.TrapHeaderText.SetLabel('Traps: ' + str(self.TrapListCtrl.GetItemCount()))
         self.SideHeaderText.SetLabel('Side-Deck: ' + str(self.SideListCtrl.GetItemCount()))
-        self.FusionHeaderText.SetLabel('Fusion/Extra Deck: ' + str(self.FusionListCtrl.GetItemCount()))
+        self.FusionHeaderText.SetLabel('Extra Deck: ' + str(self.FusionListCtrl.GetItemCount()))
 
     # Metodo che mostra un dialogo e ritorna la risposta dell'utente
     # message = Il messaggio letto dall'utente
