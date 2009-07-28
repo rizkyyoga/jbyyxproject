@@ -498,7 +498,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentRFG()
         self.RefreshOpponentGrave()
         self.RefreshOpponentFusionDeck()
-
+    
     def OnCardTarget(self, event=None):
         card = self._currentcard
         card.Target()
@@ -1764,7 +1764,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def OnOpponentActionDiscardTop(self, event = None):
         card = self._opponentdeck[0]
         self.MoveCard(self._opponentdeck, self._opponentgrave, card)
-        card.SetCardState(POS_GRAVE)
+        card.SetCardState(POS_OPP_GRAVE)
         card.Reparent(self._opponentgravelistctrl)
         self.RefreshOpponentGrave()
         self.RefreshOpponentDeck()
