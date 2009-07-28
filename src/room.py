@@ -348,3 +348,4 @@ class Room(wx.Dialog):
         self.CreateButton.Enable()
         self.DeleteButton.Disable()
         self.GetRooms(False)
+    
