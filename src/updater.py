@@ -95,7 +95,7 @@ class UpdateDialog(wx.ProgressDialog):
                 self._engine.Frame.ShowDialog(self._engine.GetLangString('Now you can restart the application.'),'',wx.OK | wx.ICON_INFORMATION, parent=self)
                 sys.exit()
         else:
-            self._engine.Frame.ShowDialog(self._engine.GetLangString('No update needed.'), '', wx.OK | wx.ICON_INFORMATION, parent=self)
+            self._engine.Frame.ShowDialog(self._engine.GetLangString('No update needed. Press NO in the next window.'), '', wx.OK | wx.ICON_INFORMATION, parent=self)
         self.Update(100, self._engine.GetLangString('Done'))
 
 
