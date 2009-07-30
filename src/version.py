@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-__appname__ = 'moose'
-__version__ = '0.1.5 2009.07.29 21:29 3471 cards'
+__version__ = '0.1.5 2009.07.30 13:32 3474 cards'
 __changelog__ = '0.1.5 More cards. Synchro Support. Bugfixes. And new look :) '
 
 def GetName(): return __name__
