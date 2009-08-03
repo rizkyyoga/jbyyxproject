@@ -2589,7 +2589,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def ResetGame(self):
         while len(self._field) > 0:
             c = self._field[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._field, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2603,7 +2603,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._grave) > 0:
             c = self._grave[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._grave, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2617,7 +2617,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._rfg) > 0:
             c = self._rfg[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._rfg, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2631,7 +2631,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._hand) > 0:
             c = self._hand[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._hand, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2652,7 +2652,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def ResetOpponentGame(self):
         while len(self._opponentfield) > 0:
             c = self._opponentfield[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._opponentfield, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2666,7 +2666,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponentgrave) > 0:
             c = self._opponentgrave[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._opponentgrave, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2680,7 +2680,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponentrfg) > 0:
             c = self._opponentrfg[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._opponentrfg, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2694,7 +2694,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponenthand) > 0:
             c = self._opponenthand[0]
-            if c.IsFusion() or c.IsSynchro():
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
                 self.MoveCard(self._opponenthand, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
