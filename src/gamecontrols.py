@@ -594,30 +594,30 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.MoveCard(self._hand, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshHand()
 
     def OnCardHandToTopDeck(self, arg=None):
         card = self._currentcard
-        self.WriteMoveCardPacket(card, POS_OPP_DECK, 0) # Top-Deck
+        self.WriteMoveCardPacket(card, POS_OPP_DECK, 1) # Top-Deck
         self.MoveCardToTop(self._hand, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardHandToBottomDeck(self, arg=None):
         card = self._currentcard
-        self.WriteMoveCardPacket(card, POS_OPP_DECK, 1) # Bottom-Deck
+        self.WriteMoveCardPacket(card, POS_OPP_DECK, 0) # Bottom-Deck
         self.MoveCardToBottom(self._hand, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.') + ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     
     def OnHandMTActivate(self, arg=None):
         card = self._currentcard[0]
@@ -701,7 +701,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardHandToTopDeck(self, arg=None):
         card = self._opponentcurrentcard
@@ -710,7 +710,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardHandToBottomDeck(self, arg=None):
         card = self._opponentcurrentcard
@@ -719,7 +719,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     
     def OnOpponentHandMTActivate(self, arg=None):
         card = self._opponentcurrentcard[0]
@@ -991,9 +991,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_DECK, 1)
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)+1) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to the top of his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to the top of his deck.')+ ' ' + str(len(self._deck)+1) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.MoveCardToTop(self._field, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
@@ -1003,9 +1003,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_DECK, 0)
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._deck)+1) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to the bottom of his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to the bottom of his deck.')+ ' ' + str(len(self._deck)+1) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.MoveCardToBottom(self._field, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
@@ -1015,9 +1015,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_DECK, 2)
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to his deck.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.MoveCard(self._field, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
@@ -1117,9 +1117,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def OnOpponentCardFieldToTopDeck(self, event=None):
         card = self._opponentcurrentcard
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to the top of his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to the top of his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         self.MoveCardToTop(self._opponentfield, self._opponentdeck, card)
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
@@ -1128,9 +1128,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def OnOpponentCardFieldToBottomDeck(self, event=None):
         card = self._opponentcurrentcard
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to the bottom of his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         self.MoveCardToBottom(self._opponentfield, self._opponentdeck, card)
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
@@ -1139,9 +1139,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def OnOpponentCardFieldToDeckShuffle(self, event=None):
         card = self._opponentcurrentcard
         if card.IsFaceUp():
-            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('sent a card to his deck.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('sent a card to his deck.')+ ' ' + str(len(self._opponentdeck)+1) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         self.MoveCard(self._opponentfield, self._opponentdeck, card)
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
@@ -1223,7 +1223,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardGraveToBottomDeck(self, event=None):
         card = self._currentcard
@@ -1233,7 +1233,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardGraveToDeckShuffle(self, event=None):
         card = self._currentcard
@@ -1241,7 +1241,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.MoveCard(self._grave, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshGrave()
@@ -1287,7 +1287,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardGraveToBottomDeck(self, event=None):
         card = self._opponentcurrentcard
@@ -1296,7 +1296,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshopponentGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardGraveToDeckShuffle(self, event=None):
         card = self._opponentcurrentcard
@@ -1305,7 +1305,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentGrave()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
 
     def OnOpponentCardGraveToRFG(self, event=None):
@@ -1404,7 +1404,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshRFG()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardRFGToBottomDeck(self, event=None):
         card = self._currentcard
@@ -1414,7 +1414,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshRFG()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardRFGToDeckShuffle(self, event=None):
         card = self._currentcard
@@ -1422,7 +1422,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.MoveCard(self._rfg, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshRFG()
@@ -1469,7 +1469,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToBottomDeck(self, event=None):
         card = self._opponentcurrentcard
@@ -1478,7 +1478,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToDeckShuffle(self, event=None):
         card = self._opponentcurrentcard
@@ -1487,7 +1487,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToFusionDeck(self, event=None):
         card = self._opponentcurrentcard
@@ -1548,7 +1548,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._handctrl)
         self.RefreshHand()
         self.RefreshDeck()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardDeckToGrave(self, event=None):
         card = self._currentcard
@@ -1559,7 +1559,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshGrave()
         self.RefreshDeck()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
-        self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName())+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardDeckToRFG(self, event=None):
         card = self._currentcard
@@ -1569,7 +1569,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._rfglistctrl)
         self.RefreshRFG()
         self.RefreshDeck()
-        self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardDeckToField(self, event=None):
         card = self._currentcard[0]
@@ -1583,7 +1583,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Hide()
         card.Show()
         self.RefreshDeck()
-        self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     #End
 
     #FusionDeck
@@ -1665,7 +1665,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponenthandctrl)
         self.RefreshOpponentHand()
         self.RefreshOpponentDeck()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardDeckToGrave(self, event=None):
         card = self._opponentcurrentcard
@@ -1675,7 +1675,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentGrave()
         self.RefreshOpponentDeck()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
-        self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName())+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardDeckToRFG(self, event=None):
         card = self._opponentcurrentcard
@@ -1684,7 +1684,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentrfglistctrl)
         self.RefreshOpponentRFG()
         self.RefreshOpponentDeck()
-        self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardDeckToField(self, event=None):
         card = self._opponentcurrentcard[0]
@@ -1697,7 +1697,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Hide()
         card.Show()
         self.RefreshOpponentDeck()
-        self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     #End
 
     def OnDeckDClick(self, event):
@@ -1739,7 +1739,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshGrave()
         self.RefreshDeck()
         self.WriteCardActionPacket(ACTION_DISCARDTOP)
-        self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     
     def OnPopupDeckRevealTopCard(self, event):
         card = self._deck[0]
@@ -1768,7 +1768,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentgravelistctrl)
         self.RefreshOpponentGrave()
         self.RefreshOpponentDeck()
-        self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     
     def OnOpponentActionRevealTop(self, event=None):
         card = self._opponentdeck[0]
@@ -1809,9 +1809,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshDeck()
         self.WritePacket(packets.DrawPacket(reveal))
         if reveal:
-            self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.', CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.'+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('drew a card.'), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString('drew a card.') + ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnDeckDrawShow(self):
         self.OnDeckDraw(1)
@@ -1824,9 +1824,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentHand()
         self.RefreshOpponentDeck()
         if reveal:
-            self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.', CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.'+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         else:
-            self.WriteGameMessage(self._engine.GetLangString('drew a card.'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('drew a card.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     
     def OnCardFieldMove(self, c, x, y):
         c.SetPosition(self.PositionCard(c, x, y))
@@ -2413,6 +2413,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def CommandHandlers(self):
         self._cmdhandlers['print'] = self.OnCmdPrint
         self._cmdhandlers['roll'] = self.OnCmdRoll
+        self._cmdhandlers['lp'] = self.OnCmdLP
+    
 
     def OnCmdPrint(self, args):
         if len(args) < 1:
@@ -2427,6 +2429,14 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.WriteMessage('Argument error.')
         finally:
             self.RollDice(faces)
+    
+    def OnCmdLP(self, args):
+        try:
+            faces = int(args[0])
+        except:
+            self.WriteMessage('Argument error.')
+        finally:
+            self._scorectrl.SetPlayerScoreDiff(faces)
     
     def OnClose(self, event=None):
         self.WriteDisconnectPacket()
@@ -2579,7 +2589,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def ResetGame(self):
         while len(self._field) > 0:
             c = self._field[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._field, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2593,7 +2603,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._grave) > 0:
             c = self._grave[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._grave, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2607,7 +2617,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._rfg) > 0:
             c = self._rfg[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._rfg, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2621,7 +2631,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._hand) > 0:
             c = self._hand[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._hand, self._fusiondeck, c)
                 c.SetCardState(POS_FUSIONDECK)
                 c.Reparent(self._fusiondecklistctrl)
@@ -2642,7 +2652,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def ResetOpponentGame(self):
         while len(self._opponentfield) > 0:
             c = self._opponentfield[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._opponentfield, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2656,7 +2666,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponentgrave) > 0:
             c = self._opponentgrave[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._opponentgrave, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2670,7 +2680,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponentrfg) > 0:
             c = self._opponentrfg[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._opponentrfg, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -2684,7 +2694,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
         while len(self._opponenthand) > 0:
             c = self._opponenthand[0]
-            if c.IsFusion():
+            if c.IsFusion() or c.IsSynchro():
                 self.MoveCard(self._opponenthand, self._opponentfusiondeck, c)
                 c.SetCardState(POS_OPP_FUSIONDECK)
                 c.Reparent(self._opponentfusiondecklistctrl)
@@ -3236,7 +3246,7 @@ class RFGListDropTarget(wx.TextDropTarget):
 class DeckControl(GameObject):
     def __init__(self, parent, pos, t):
         GameObject.__init__(self, parent, pos, t)
-
+    
 class FusionDeckControl(GameObject):
     def __init__(self, parent, pos, t):
         GameObject.__init__(self, parent, pos, t)
@@ -3619,7 +3629,7 @@ class CardControl(GameObject, wx.DataObjectSimple):
             desc += '/' + self._card.Type2
         if  self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
             desc += '/' + self._card.Attribute + '/' + self._card.Stars + '\n'
-            desc +='Atk/' + self._card.Atk + ' Def/' + self._card.Def
+            desc +='ATK/' + self._card.Atk + ' DEF/' + self._card.Def
         desc +='\n' + self._card.Effect
         self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc)
     
@@ -3642,7 +3652,10 @@ class CardControl(GameObject, wx.DataObjectSimple):
         return self._card.Name
     
     def GetCardStats(self):
-        return self._card.Atk + '/' + self._card.Def
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
+            return self._card.Atk + '/' + self._card.Def
+        else:
+            return self._card.Atk + ' ' + self._card.Def
     
     def GetCardEffect(self):
         return self._card.Effect
