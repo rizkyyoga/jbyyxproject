@@ -3844,12 +3844,14 @@ class CardControl(GameObject, wx.DataObjectSimple):
             else:
                 dc.DrawBitmap(tbmp, 28, 18, True)
         if self._counters > 0:
-            #dc.SetTextForeground(wx.BLACK)
-            dc.SetFont(wx.Font(pointSize=9,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD, faceName="Tahoma"))
+            dc.SetTextForeground('#000000')
+            dc.SetFont(wx.Font(pointSize=10,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_BOLD, faceName="Tahoma"))
             if self.IsVertical():
-                dc.DrawText(str(self._counters), 8, 48)
+                dc.GradientFillLinear((8, 55, 14, 14), '#ffffff', '#ffffff', wx.NORTH)
+                dc.DrawText(str(self._counters), 8, 55)
             else:
-                dc.DrawText(str(self._counters), 7, 22)
+                dc.GradientFillLinear((8, 28, 14, 14), '#ffffff', '#ffffff', wx.NORTH)
+                dc.DrawText(str(self._counters), 8, 28)
 
 class OpponentCardControl(GameObject):
     def __init__(self, parent, card, engine, game, serial, cpos=0, cardmode=0, cardface=1):
