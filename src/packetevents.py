@@ -35,6 +35,7 @@ EVT_RESETGAME = 3014
 EVT_LOOK = 3015
 EVT_CARDACTION = 3016
 EVT_CARDCOUNTER = 3017
+EVT_SHUFFLEHAND = 3018
 
 class PacketConnectEvent(wx.PyEvent):
     def __init__(self, data):
@@ -64,6 +65,12 @@ class PacketShuffleEvent(wx.PyEvent):
     def __init__(self, data):
         wx.PyEvent.__init__(self)
         self.SetEventType(EVT_SHUFFLE)
+        self.data = data
+
+class PacketShuffleHandEvent(wx.PyEvent):
+    def __init__(self, data):
+        wx.PyEvent.__init__(self)
+        self.SetEventType(EVT_SHUFFLEHAND)
         self.data = data
 
 class PacketCardMoveEvent(wx.PyEvent):

@@ -36,6 +36,7 @@ PACKET_RESETGAME = 13
 PACKET_LOOK = 14
 PACKET_CARDACTION = 15
 PACKET_CARDCOUNTER = 16
+PACKET_SHUFFLEHAND = 17
 
 class Packet():
     def __init__(self,id):
@@ -109,6 +110,12 @@ class ShufflePacket(Packet):
     def __init__(self, deck):
         Packet.__init__(self, PACKET_SHUFFLE) # ID del pacchetto
         for c in deck:
+            self.WriteString(c.GetSerial())  
+
+class ShuffleHandPacket(Packet):
+    def __init__(self, hand):
+        Packet.__init__(self, PACKET_SHUFFLEHAND) # ID del pacchetto
+        for c in hand:
             self.WriteString(c.GetSerial())
 
 class CardMovePacket(Packet):
