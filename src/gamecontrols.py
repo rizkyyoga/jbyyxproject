@@ -540,6 +540,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
 
     def OnCardHandPopup(self, c):
         menu = wx.Menu()
+        item = wx.MenuItem(menu, -1, self._engine.GetLangString('Hand Shuffle'))
+        item.SetBitmap(self._engine.GetSkinImage('Todecksh'))
+        menu.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.OnCardShuffleHand, item)
         item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Grave'))
         item.SetBitmap(self._engine.GetSkinImage('Tograve'))
         menu.AppendItem(item)
@@ -598,7 +602,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshHand()
+ 
+    def OnCardShuffleHand(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND, 8) # Deck-Shuffle
+        self.MoveCard(self._hand, self._hand, card)
+        card.SetCardState(POS_HAND)
+        self.ShuffleHand()
+        self.RefreshHand()
 
+    
     def OnCardHandToTopDeck(self, arg=None):
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_DECK, 1) # Top-Deck
@@ -2585,6 +2598,12 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshDeck()
         self.WriteGameMessage(self._engine.GetLangString('shuffled his deck.'), CHAT_PLAYER)
         self.WriteShufflePacket()
+    
+    def ShuffleHand(self):
+        random.shuffle(self._hand)
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('shuffled his hand.'), CHAT_PLAYER)
+        self.WriteShuffleHandPacket()
 
     def ResetGame(self):
         while len(self._field) > 0:
@@ -2740,7 +2759,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
 
     def WriteShufflePacket(self):
         self.WritePacket(packets.ShufflePacket(self._deck))
-
+    
+    def WriteShuffleHandPacket(self):
+        self.WritePacket(packets.ShuffleHandPacket(self._hand))
+    
     def WriteMoveCardPacket(self, card, dest, dest2=0, x=0, y=0):
         x = self._opponentfieldctrl.GetSize().GetWidth() - x
         y = self._opponentfieldctrl.GetSize().GetHeight() - y
@@ -2835,6 +2857,18 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentDeck()
         self.WriteGameMessage(self._engine.GetLangString('shuffled his deck.'), CHAT_OPPONENT)
 
+    def OnShuffleHandPacket(self, event):
+        reader = event.data
+        l = []
+        while 1:
+            try:
+                l.append(self.GetOpponentCardFromSerial(reader.ReadString()))
+            except:
+               break
+        self._opponenthand = l
+        self.RefreshOpponentHand()
+        self.WriteGameMessage(self._engine.GetLangString('shuffled his hand'), CHAT_OPPONENT)
+    
     def OnCardMovePacket(self, event):
         reader = event.data
         card = self.GetOpponentCardFromSerial(reader.ReadString())

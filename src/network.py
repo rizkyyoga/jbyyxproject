@@ -287,6 +287,8 @@ class Network():
         self._frame.Connect(-1, -1, EVT_CARDACTION, self._frame.OnCardActionPacket)
         self._handlers[PACKET_CARDCOUNTER] = PacketCardCounterEvent
         self._frame.Connect(-1, -1, EVT_CARDCOUNTER, self._frame.OnCardCounterPacket)
+        self._handlers[PACKET_SHUFFLEHAND] = PacketShuffleHandEvent
+        self._frame.Connect(-1, -1, EVT_SHUFFLEHAND, self._frame.OnShuffleHandPacket) 
 
     def GetHandler(self, id):
         return self._handlers[id]
