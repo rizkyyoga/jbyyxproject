@@ -71,7 +71,7 @@ class MainFrame(wx.Frame):
         self.hmbox10 = wx.BoxSizer(wx.HORIZONTAL) # *
         self.hmbox11 = wx.BoxSizer(wx.HORIZONTAL) # *
         self.hvbox1 = wx.BoxSizer(wx.HORIZONTAL)
-
+        self.Bind(wx.EVT_SHOW, self.OnUpdate)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         # Menu
         self.Menu = wx.MenuBar() # Inizializzo il menu
@@ -294,10 +294,10 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnUpdate, item)
         self.mHelp.AppendItem(item)
     
-        item = wx.MenuItem(self.mHelp,-1,self.Engine.GetLangString('Images Update'))
+        #item = wx.MenuItem(self.mHelp,-1,self.Engine.GetLangString('Images Update'))
         #item.SetBitmap(self.Engine.GetSkinImage('Update'))
-        self.Bind(wx.EVT_MENU, self.OnImagesUpdate, item)
-        self.mHelp.AppendItem(item)
+        #self.Bind(wx.EVT_MENU, self.OnImagesUpdate, item)
+        #self.mHelp.AppendItem(item)
     
         item = wx.MenuItem(self.mHelp,ID_WEB,self.Engine.GetLangString('J_PROJECT.Web'))
         item.SetBitmap(self.Engine.GetSkinImage('Web'))
@@ -643,12 +643,12 @@ class MainFrame(wx.Frame):
     # Apre il browser predefinito alla homepage di Moose
     def OnWeb(self, event=None):
         try:
-            webbrowser.open_new_tab('http://jproject.tk/')
+            webbrowser.open_new_tab('http://jproject.xz.lt/')
         except: pass
 
     def OnDiscussionChannelMenu(self, event=None):
         try:
-            webbrowser.open_new_tab('http://yugioh.wikia.com/wiki/March_2009_Lists')
+            webbrowser.open_new_tab('http://yugioh.wikia.com/wiki/September_2010_Lists')
         except: pass
     
     def OnDuelChannelMenu(self, event=None):
@@ -706,6 +706,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         info.AddArtist("igry")
         info.AddArtist("flamewingbeast")
         info.AddArtist("Djordje Vasiljevic(Charmed94)")
+        info.AddArtist("M-Zidinys")
         info.AddTranslator("Djordje Vasiljevic(Charmed94)")
         info.AddTranslator("J_BYYX-Lietuviu")
         wx.AboutBox(info)
