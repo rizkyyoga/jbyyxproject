@@ -36,6 +36,7 @@ EVT_LOOK = 3015
 EVT_CARDACTION = 3016
 EVT_CARDCOUNTER = 3017
 EVT_SHUFFLEHAND = 3018
+EVT_CHANGECONTROL = 3019
 
 class PacketConnectEvent(wx.PyEvent):
     def __init__(self, data):
@@ -77,6 +78,12 @@ class PacketCardMoveEvent(wx.PyEvent):
     def __init__(self, data):
         wx.PyEvent.__init__(self)
         self.SetEventType(EVT_CARDMOVE)
+        self.data = data
+
+class PacketChangeControlEvent(wx.PyEvent):
+    def __init__(self, data):
+        wx.PyEvent.__init__(self)
+        self.SetEventType(EVT_CHANGECONTROL)
         self.data = data
 
 class PacketCardFlipEvent(wx.PyEvent):

@@ -37,6 +37,7 @@ PACKET_LOOK = 14
 PACKET_CARDACTION = 15
 PACKET_CARDCOUNTER = 16
 PACKET_SHUFFLEHAND = 17
+PACKET_CHANGECONTROL = 18
 
 class Packet():
     def __init__(self,id):
@@ -181,6 +182,13 @@ class CardActionPacket(Packet):
 class CardCounterPacket(Packet):
     def __init__(self, serial, action, count):
         Packet.__init__(self, PACKET_CARDCOUNTER) # ID del pacchetto
+        self.WriteString(serial)
+        self.WriteInt(action)
+        self.WriteInt(count)
+    
+class ChangeControlPacket(Packet):
+    def __init__(self, serial, action, count):
+        Packet.__init__(self, PACKET_CHANGECONTROL) # ID del pacchetto
         self.WriteString(serial)
         self.WriteInt(action)
         self.WriteInt(count)

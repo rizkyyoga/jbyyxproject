@@ -517,6 +517,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.RemoveCounters(1)
         self.WriteGameMessage(' %s %s' % (self._engine.GetLangString("removed a counter from"), card.GetCardName()), CHAT_PLAYER)
         self.WriteCardCounterPacket(card.GetSerial(), 1, 1)
+    
+    def OnCardChangeControl(self, event=None):
+        card = self._currentcard
+        self.WriteGameMessage(' %s %s' % (self._engine.GetLangString("changed control..."), card.GetCardName()), CHAT_PLAYER)
+        self.WriteChangeControlPacket(card.GetSerial(), 1, 1)
 
     def OnOpponentCardTarget(self, event=None):
         card = self._opponentcurrentcard
@@ -894,6 +899,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         item.SetBitmap(self._engine.GetSkinImage('Counterm'))
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnCardRemoveCounter, item)
+       # Not working.
+       # item = wx.MenuItem(menu, -1, self._engine.GetLangString('Change Control'))
+       # item.SetBitmap(self._engine.GetSkinImage('Counterm'))
+       # menu.AppendItem(item)
+       # self.Bind(wx.EVT_MENU, self.OnCardChangeControl, item)
         self._currentcard = c
         self.PopupMenu(menu)
 
@@ -2801,6 +2811,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def WriteCardCounterPacket(self, serial, action, count):
         self.WritePacket(packets.CardCounterPacket(serial, action, count))
     
+    def WriteChangeControlPacket(self, serial, action, count):
+        self.WritePacket(packets.ChangeControlPacket(serial, action, count))
+    
     # Packet Events
     def OnConnectPacket(self, event):
         self.Parent.Show()
@@ -2868,6 +2881,17 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self._opponenthand = l
         self.RefreshOpponentHand()
         self.WriteGameMessage(self._engine.GetLangString('shuffled his hand'), CHAT_OPPONENT)
+    
+    def OnChangeControlPacket(self, event):
+        reader = event.data
+        l = []
+        while 1:
+            try:
+                l.append(self.GetOpponentCardFromSerial(reader.ReadString()))
+            except:
+               break
+        self._opponentfield = l
+        self.WriteGameMessage(self._engine.GetLangString('Changed Control'), CHAT_OPPONENT)
     
     def OnCardMovePacket(self, event):
         reader = event.data
