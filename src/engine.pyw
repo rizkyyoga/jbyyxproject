@@ -131,9 +131,9 @@ class Engine():
         '''Download missing images'''
         if not self.CheckConnection():
             return 0
-        url = 'http://jprject.xz.lt/update/Images/%s.jpg' % n
+        url = 'http://jprject.xz.lt/update/images/%s.jpg' % n
         try:
-            urllib.urlretrieve(url.replace(" ", "%20").replace("#", "%23"), os.path.join(self.ImagesDirectory,'%s.jpg'%n))
+            urllib.urlretrieve(os.path.join(self.ImagesDirectory,'%s.jpg'%n))
             return 1
         except: pass
         return 0
@@ -141,7 +141,7 @@ class Engine():
     def DownloadImageList(self):
         if not self.CheckConnection():
             return ''
-        url = 'http://jprject.xz.lt/update/Images/'
+        url = 'http://jprject.xz.lt/update/images/'
         s = ''
         try: 
             u = urllib.urlopen(url)

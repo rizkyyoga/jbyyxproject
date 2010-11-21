@@ -533,12 +533,8 @@ class MainFrame(wx.Frame):
             desc +=  card.Type2 + '\n'
         if card.Attribute != 'Spell' and card.Attribute != 'Trap':
             desc += card.Attribute + '\n'
-            stars = int(card.Stars)
-            n = 0
-            while n < stars:
-                desc += ' * '
-                n += 1
-            desc += '\n' + 'Atk/' + card.Atk + ' Def/' + card.Def + '\n'
+            desc += '*' + card.Stars
+            desc += '\n' + 'ATK/' + card.Atk + ' DEF/' + card.Def + '\n'
         desc +=  card.Code + '\n\n' + card.Effect
         self.CardDescriptionCtrl.SetValue(desc)
         self.panel.SendSizeEvent()
