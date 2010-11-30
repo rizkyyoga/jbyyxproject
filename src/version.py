@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-__appname__ = 'moose'
-__version__ = '0.1.6.96'
+__version__ = '0.1.6.97'
 __changelog__ = '0.1.6.92 More cards. Hand Shuffle function. Fixed Rooms Function.'
 
 def GetName(): return __name__
