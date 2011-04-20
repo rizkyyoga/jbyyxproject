@@ -19,7 +19,7 @@
 class Deck():
     def __init__(self):
         self.Cards = []
-
+    
     def Add(self,card):
         self.Cards.append(card)
 

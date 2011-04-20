@@ -16,10 +16,11 @@
 #    along with moose; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import wx, sys, os, webbrowser
+import wx, sys, os, webbrowser, re, random
 from wx import richtext
 import engine, network, dialogs, gameframe, room, updater
 from printer import DeckPrinter
+from ctypes import *
 
 ID_NEW = 10001
 ID_OPEN = 10002
@@ -70,6 +71,7 @@ class MainFrame(wx.Frame):
         self.hmbox9 = wx.BoxSizer(wx.HORIZONTAL) # *
         self.hmbox10 = wx.BoxSizer(wx.HORIZONTAL) # *
         self.hmbox11 = wx.BoxSizer(wx.HORIZONTAL) # *
+        self.hmbox12 = wx.BoxSizer(wx.HORIZONTAL)
         self.hvbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.Bind(wx.EVT_SHOW, self.OnUpdate)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -147,8 +149,18 @@ class MainFrame(wx.Frame):
 
         # Visualizzazione della carta
         self.CardNameCtrl = wx.StaticText(self.panel, -1, style=wx.ALIGN_CENTRE)
-        self.CardImageCtrl = wx.StaticBitmap(self.panel, -1, size=(136,200))
-        self.CardDescriptionCtrl = wx.TextCtrl(self.panel, -1, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_CENTRE)
+        fontname = wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.BOLD, faceName="Serpentine-Light") 
+        self.CardNameCtrl.SetFont(fontname) 
+        self.CardImageCtrl = wx.StaticBitmap(self.panel, -1, size=(143,200))
+        self.CardAttributeCtrl = wx.StaticBitmap(self.panel, -1, size=(32,32))
+        self.CardTypeCtrl = wx.StaticBitmap(self.panel, -1, size=(32,32))
+        self.CardType2Ctrl = wx.StaticBitmap(self.panel, -1, size=(32,32))
+        self.CardStarsCtrl = wx.StaticText(self.panel, -1, style=wx.ALIGN_LEFT)
+        fontname2 = wx.Font(20, wx.DEFAULT, wx.NORMAL, wx.BOLD, faceName="Serpentine-Light")
+        fonttext = wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.BOLD, faceName="Serpentine-Light") 
+        self.CardStarsCtrl.SetFont(fontname2)
+        self.CardDescriptionCtrl = wx.TextCtrl(self.panel, -1, style=wx.TE_MULTILINE | wx.TE_READONLY)
+        #self.CardDescriptionCtrl.SetFont(fonttext)
         # End
         
         self.BuildUI()
@@ -186,7 +198,13 @@ class MainFrame(wx.Frame):
 
         self.vbox5.Add(self.CardNameCtrl, 0, wx.ALL | wx.ALIGN_CENTER , 4)
         self.vbox5.Add(self.CardImageCtrl, 0, wx.ALL | wx.ALIGN_CENTER, 4)
+        self.vbox5.Add(self.hmbox12, 0, wx.ALL | wx.EXPAND, 2) # *
+        self.hmbox12.Add(self.CardAttributeCtrl, flag=wx.LEFT, border=1)
+        self.hmbox12.Add(self.CardTypeCtrl, 0, flag=wx.LEFT, border=1)
+        self.hmbox12.Add(self.CardType2Ctrl, 0, flag=wx.LEFT, border=1)
+        self.hmbox12.Add(self.CardStarsCtrl, 0, flag=wx.LEFT, border=1)
         self.vbox5.Add(self.CardDescriptionCtrl, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 4)
+
         
         self.hbox.Add(self.vbox1, 1, wx.EXPAND | wx.ALL, 2) # Aggiungo il VBox1 al HBox (control,proprortions,styles,margins)
         self.hbox.Add(self.vbox2, 1, wx.EXPAND | wx.ALL, 2) # Aggiungo il VBox2 al HBox (control,proprortions,styles,margins)
@@ -528,17 +546,51 @@ class MainFrame(wx.Frame):
     def ShowCardInfo(self,card):
         self.CardNameCtrl.SetLabel(card.Name)
         self.CardImageCtrl.SetBitmap(self.Engine.GetBigCardImage(card))
+        self.CardAttributeCtrl.SetBitmap(self.Engine.GetSkinImage(card.Attribute))
+
+# Type Check
+        string = "/"
+        typec = ''
+        f = card.Type
+        for character in f:
+            if character.find(string) == -1:
+                typec=typec+character
+            else:
+                break
+        
+        self.CardTypeCtrl.SetBitmap(self.Engine.GetSkinImage(typec))
+        self.CardType2Ctrl.SetBitmap(self.Engine.GetSkinImage(card.Type2))
+        
+        self.CardStarsCtrl.SetLabel(card.Stars + '*')
+        typecf=''
+        typec = re.search('Tuner', card.Type)
+        if typec:
+            typecf = typec.group ( 0 )
+        if typecf == 'Tuner':
+            self.CardStarsCtrl.SetForegroundColour((0,145,0))
+        else:
+            self.CardStarsCtrl.SetForegroundColour((0,0,0))
+                
+        if card.Attribute == 'Spell' or card.Attribute == 'Trap':
+            self.CardStarsCtrl.SetLabel('')
+            
+        
+
+
+        
         desc = card.Type + '\n'
         if len(card.Type2) > 0:
-            desc +=  card.Type2 + '\n'
-        if card.Attribute != 'Spell' and card.Attribute != 'Trap':
-            desc += card.Attribute + '\n'
-            desc += '*' + card.Stars
-            desc += '\n' + 'ATK/' + card.Atk + ' DEF/' + card.Def + '\n'
-        desc +=  card.Code + '\n\n' + card.Effect
+           desc +=  card.Type2 + '\n'
+        #if card.Attribute != 'Spell' and card.Attribute != 'Trap':
+        #    desc += card.Attribute + '\n'
+        #    desc += '*' + card.Stars
+        #    desc += '\n' + 'ATK/' + card.Atk + ' DEF/' + card.Def + '\n'
+        #desc +=  card.Code + '\n\n' + card.Effect
+        desc += '\n' + card.Effect
         self.CardDescriptionCtrl.SetValue(desc)
         self.panel.SendSizeEvent()
 
+        
     # Metodo che aggiunge la carta seleziona al deck
     def OnAddCard(self, event):
         if self.SelectedFromDeck == '':
@@ -546,6 +598,7 @@ class MainFrame(wx.Frame):
         c = self.Engine.FindCardByCode(self.SelectedFromDeck)
         self.Engine.Deck.Add(c)
         self.RefreshCardList()
+
 
     # Metodo che aggiunge la carta seleziona al side
     def OnAddCardToSide(self, event):
@@ -630,7 +683,13 @@ class MainFrame(wx.Frame):
         self.Close()
 
     def OnClose(self, event):
-        if self.ShowDialog(self.Engine.GetLangString('Are you sure to quit?'), '?', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION) == wx.ID_YES:
+        arr=[]
+        inp = open ("dat","r")
+        #read line into array
+        for line in inp.readlines():
+            arr.append(line)
+        ggbro = random.choice(arr)
+        if self.ShowDialog(ggbro, '?', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION) == wx.ID_YES:
             try: self.Engine.GameFrame.Close()
             except: pass
             self.Engine.SaveSettings({'LastDeckPath':self.Engine.DeckPath})
@@ -644,7 +703,7 @@ class MainFrame(wx.Frame):
 
     def OnDiscussionChannelMenu(self, event=None):
         try:
-            webbrowser.open_new_tab('http://yugioh.wikia.com/wiki/September_2010_Lists')
+            webbrowser.open_new_tab('http://yugioh.wikia.com/wiki/March_2011_Lists')
         except: pass
     
     def OnDuelChannelMenu(self, event=None):

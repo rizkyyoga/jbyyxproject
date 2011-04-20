@@ -19,7 +19,7 @@
 import urllib, os, md5, sys, wx
 from xml.dom import minidom
 
-updateserver = 'http://jproject.xz.lt/update/'
+updateserver = 'http://jproject.xz.lt/update/v2/'
 
 def CheckUpdate(dir):
     try:
@@ -89,14 +89,20 @@ class UpdateDialog(wx.ProgressDialog):
             if pn > 99: pn = 99
         
     def CheckUpdateDialog(self):
-        if CheckVersionUpdate(self._engine.GetVersion()):
+        
+        lres = open('versionupdate.xml')
+        lret = lres.read()
+        xmldoc = minidom.parseString(lret)
+        lnv = xmldoc.firstChild.firstChild.getAttribute('version')
+        
+        if CheckVersionUpdate(lnv):
             toupdate = CheckUpdate(self._engine.BaseDirectory)
-            if self._engine.Frame.ShowDialog(self._engine.GetLangString('An update is avaible, would you like to update now?'),'',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT, parent=self) == wx.ID_YES:
+            if self._engine.Frame.ShowDialog(self._engine.GetLangString('New cards are avaible, would you like to download them?'),'',wx.YES_NO | wx.ICON_QUESTION | wx.YES_DEFAULT, parent=self) == wx.ID_YES:
                 self.DoUpdate(toupdate)
-                self._engine.Frame.ShowDialog(self._engine.GetLangString('Now you can restart the application.'),'',wx.OK | wx.ICON_INFORMATION, parent=self)
+                self._engine.Frame.ShowDialog(self._engine.GetLangString('Now you can restart the application. \n Download images from official vebsite!'),'',wx.OK | wx.ICON_INFORMATION, parent=self)
                 sys.exit()
         else:
-            self._engine.Frame.ShowDialog(self._engine.GetLangString('No update needed.'), '', wx.OK | wx.ICON_INFORMATION, parent=self)
+            self._engine.Frame.ShowDialog(self._engine.GetLangString('Your cards database is up to date ^_^'), '', wx.OK | wx.ICON_INFORMATION, parent=self)
         self.Update(100, self._engine.GetLangString('Done'))
 
 

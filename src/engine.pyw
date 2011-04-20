@@ -21,6 +21,9 @@ from xml.dom import minidom
 from sqlite3 import dbapi2
 import version, mainform, gamecard, settings, skin, language, deck, xmlhandler
 import network, gameframe, dialogs, updater, keyhandler
+from ctypes import *
+import cStringIO
+import Image
 
 def ListDirs(path):
     '''Metodo che ritorna una lista contenente tute le directory trovate in <path>'''
@@ -64,7 +67,7 @@ class Engine():
         else:
             self.BaseDirectory = os.getcwd()
 
-        splash = wx.SplashScreen(wx.Bitmap(os.path.join(self.BaseDirectory, 'splash.png'), wx.BITMAP_TYPE_PNG), wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_NO_TIMEOUT, 0, None, -1)
+        #splash = wx.SplashScreen(wx.Bitmap(os.path.join(self.BaseDirectory, 'splash.png'), wx.BITMAP_TYPE_PNG), wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_NO_TIMEOUT, 0, None, -1)
         self.SkinsDirectory = os.path.join(self.BaseDirectory, 'Skins') # Skins Directory
         self.LanguagesDirectory = os.path.join(self.BaseDirectory, 'Languages') # Languages Directory
         self.DecksDirectory = os.path.join(self.BaseDirectory, 'Decks') # Decks Directory
@@ -83,6 +86,12 @@ class Engine():
         # Variabile che contiene l'ip
         self._ip = ''
     
+        #Fonts
+        gdi32= WinDLL("gdi32.dll")
+        fonts = [font for font in os.listdir("Fonts") if font.endswith("otf") or font.endswith("ttf")]
+        for font in fonts:
+            gdi32.AddFontResourceA(os.path.join("Fonts",font))
+        
         self.Settings = settings.LoadSettings(self.BaseDirectory) # Carico le impostazioni
 
         # Update Check
@@ -103,7 +112,7 @@ class Engine():
 
         self.DatabaseCardsCount = len(self.GetAllCards()) # Inizializzo una variabile contenente il totale delle carte
         
-        self.Frame = mainform.MainFrame(engine=self, parent=None, title="J_PROJECT Deck Construction",size=(800,640)) #Inizializzo il frame
+        self.Frame = mainform.MainFrame(engine=self, parent=None, title="J_PROJECT Deck Construction",size=(962,576)) #Inizializzo il frame
         self.Frame.SetIcon(wx.IconFromLocation(wx.IconLocation(os.path.join(self.BaseDirectory,'J_16x16.ico'))))
         
         if self.GetSetting('OpenLastDeck') == 'Yes':
@@ -111,9 +120,9 @@ class Engine():
             if lastdeckpath and os.path.exists(lastdeckpath):
                 self.Frame.OnOpen(path=lastdeckpath)
 
-        splash.Refresh() # Refresh Splash
-        time.sleep(1) # Sleep di 1 secondo per mostrare lo splash :P
-        splash.Close() # Chiudo lo splash
+        #splash.Refresh() # Refresh Splash
+       # time.sleep(1) # Sleep di 1 secondo per mostrare lo splash :P
+        #splash.Close() # Chiudo lo splash
         self.Frame.Show() # Mostro il frame
         self.Application.MainLoop() # Loop dell'applicazione
     
@@ -123,15 +132,16 @@ class Engine():
         l = self.DownloadImageList()
         m = []
         for c in cards:
-            if not os.path.exists(os.path.join(self.ImagesDirectory, c.Name + '.jpg')) and l.count(c.Name + '.jpg') > 0:
+            if not os.path.exists(os.path.join('Images/' + c.Name + '.jpg')) and l.count(c.Name + '.jpg') > 0:
                 m.append(c.Name)
         return m
 
     def DownloadImage(self, n):
         '''Download missing images'''
+        n = n.replace(' ', '%20')
         if not self.CheckConnection():
             return 0
-        url = 'http://jprject.xz.lt/update/images/%s.jpg' % n
+        url = 'http://jprject.xz.lt/update/v2/images/%s.jpg' % n
         try:
             urllib.urlretrieve(os.path.join(self.ImagesDirectory,'%s.jpg'%n))
             return 1
@@ -141,7 +151,7 @@ class Engine():
     def DownloadImageList(self):
         if not self.CheckConnection():
             return ''
-        url = 'http://jprject.xz.lt/update/images/'
+        url = 'http://jprject.xz.lt/update/v2/images/'
         s = ''
         try: 
             u = urllib.urlopen(url)
@@ -353,20 +363,29 @@ class Engine():
     def GetCardImage(self, c):
         p = c.GetCardPosition()
         if p == 2 or p == 3 or p == 4 or p == 5 or p == 6 or p == 9 or p == 10 or p == 11 or p == 12 or p == 13:
-            if c.IsTrap():
-                return self.GetSkinImage('TrapList')
-            elif c.IsRitual():
-                return self.GetSkinImage('RitualList')
-            elif c.IsSpell():
-                return self.GetSkinImage('SpellList')
-            elif c.IsFusion():
-                return self.GetSkinImage('FusionList')
-            elif c.IsSynchro():
-                return self.GetSkinImage('SynchroList')
-            elif c.IsNormalMonster():
-                return self.GetSkinImage('MonsterList')
-            else:
-                return self.GetSkinImage('MonsterEffectList')
+            if not os.path.exists('Images/' + c.GetCardName() + '.jpg'):
+                att = c.GetCardAttribute()
+                ty = c.GetCardType()
+                if att != 'Spell' and att != 'Trap':# Scelgo lo sfondo adatto
+                    if ty.find('Fusion') > -1:
+                     b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
+                    elif ty.find('Synchro') > -1:
+                        b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)     
+                    elif ty.find('Ritual') > -1:
+                        b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
+                    elif ty.find('Token') > -1:
+                        b = self.ResizeBitmap(self.GetSkinImage('Token'), 62, 88)
+                    elif ty.find('Effect') > -1:
+                        b = self.ResizeBitmap(self.GetSkinImage('MonsterEffect'), 62, 88)
+                    else:
+                        b = self.ResizeBitmap(self.GetSkinImage('Monster'), 62, 88)
+                elif att == 'Trap':
+                    b = self.ResizeBitmap(self.GetSkinImage('Trapc'), 62, 88)
+                elif att == 'Spell':
+                    b = self.ResizeBitmap(self.GetSkinImage('Spellc'), 62, 88)
+                return b
+            img = self.GetImageCardScaled(c.GetCardName())
+            return img
         if c.IsFaceDown():
             bmp = self.GetSkinImage('CardBack')
             if c.IsHorizontal():
@@ -376,26 +395,26 @@ class Engine():
         ty = c.GetCardType()
         if att != 'Spell' and att != 'Trap':# Scelgo lo sfondo adatto
             if ty.find('Fusion') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
             elif ty.find('Synchro') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 60, 88)              
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)              
             elif ty.find('Ritual') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Ritual'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
             elif ty.find('Token') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Token'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Token'), 62, 88)
             elif ty.find('Effect') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('MonsterEffect'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('MonsterEffect'), 62, 88)
             else:
-                b = self.ResizeBitmap(self.GetSkinImage('Monster'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Monster'), 62, 88)
         elif att == 'Trap':
-            b = self.ResizeBitmap(self.GetSkinImage('Trap'), 60, 88)
+            b = self.ResizeBitmap(self.GetSkinImage('Trapc'), 62, 88)
         elif att == 'Spell':
-            b = self.ResizeBitmap(self.GetSkinImage('Spell'), 60, 88)
+            b = self.ResizeBitmap(self.GetSkinImage('Spellc'), 62, 88)
         bmp = self.GetImageCardScaled(c.GetCardName())
         if not bmp is -1:
             dc = wx.MemoryDC()
             dc.SelectObject(b)
-            dc.DrawBitmap(bmp, 8, 19)
+            dc.DrawBitmap(bmp, 0, 0)
         if c.IsHorizontal():
             b = self.Rotate90Bitmap(b)
         return b
@@ -405,99 +424,36 @@ class Engine():
         ty = c.GetCardType()
         if att != 'Spell' and att != 'Trap':# Scelgo lo sfondo adatto
             if ty.find('Fusion') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
             elif ty.find('Synchro') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 60, 88)     
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)     
             elif ty.find('Ritual') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Ritual'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
             elif ty.find('Token') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Token'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Token'), 62, 88)
             elif ty.find('Effect') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('MonsterEffect'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('MonsterEffect'), 62, 88)
             else:
-                b = self.ResizeBitmap(self.GetSkinImage('Monster'), 60, 88)
+                b = self.ResizeBitmap(self.GetSkinImage('Monster'), 62, 88)
         elif att == 'Trap':
-            b = self.ResizeBitmap(self.GetSkinImage('Trap'), 60, 88)
+            b = self.ResizeBitmap(self.GetSkinImage('Trapc'), 62, 88)
         elif att == 'Spell':
-            b = self.ResizeBitmap(self.GetSkinImage('Spell'), 60, 88)
+            b = self.ResizeBitmap(self.GetSkinImage('Spellc'), 62, 88)
         bmp = self.GetImageCardScaled(c.GetCardName())
         if not bmp is -1:
             dc = wx.MemoryDC()
             dc.SelectObject(b)
-            dc.DrawBitmap(bmp, 8, 19)
+            dc.DrawBitmap(bmp, 0, 0)
         return b
 
     def GetBigCardImage(self, c):
         dc = wx.MemoryDC()
-        
-        if c.Attribute != 'Spell' and c.Attribute != 'Trap':# Scelgo lo sfondo adatto
-            if c.Type.find('Fusion') > -1:
-                BackSkin =self.GetSkinImage('Fusion')
-            elif c.Type.find('Synchro') > -1:
-                BackSkin = self.GetSkinImage('Synchro')
-            elif c.Type.find('Ritual') > -1:
-                BackSkin = self.GetSkinImage('Ritual')
-            elif c.Type.find('Token') > -1:
-                BackSkin = self.GetSkinImage('Token')
-            elif c.Type.find('Effect') > -1:
-                BackSkin = self.GetSkinImage('MonsterEffect')
-            else:
-                BackSkin = self.GetSkinImage('Monster')
-        if c.Attribute == 'Trap':
-            BackSkin = self.GetSkinImage('Trap')
-        if c.Attribute == 'Spell':
-            BackSkin = self.GetSkinImage('Spell')
-            
+        BackSkin = self.GetSkinImage('testblank')  
         dc.SelectObject(BackSkin) # Carico lo sfondo
-        
         dc.SetFont(wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL,faceName='Tahoma'))
-        dc.DrawText(c.Name[:21], 14,12)# Nome carta, limitato ai primi 20 caratteri
-       
-        if c.Attribute == 'Light':
-            dc.DrawBitmap(self.GetSkinImage('LightIcon'), 110,11, True)
-        if c.Attribute == 'Dark':
-            dc.DrawBitmap(self.GetSkinImage('DarkIcon'), 110,11, True)
-        if c.Attribute == 'Water':
-            dc.DrawBitmap(self.GetSkinImage('WaterIcon'), 110,11, True)
-        if c.Attribute == 'Fire':
-            dc.DrawBitmap(self.GetSkinImage('FireIcon'), 110,11, True)
-        if c.Attribute == 'Earth':
-            dc.DrawBitmap(self.GetSkinImage('EarthIcon'), 110,11, True)
-        if c.Attribute == 'Wind':
-            dc.DrawBitmap(self.GetSkinImage('WindIcon'), 110,11, True)
-        
-        if c.Attribute != 'Trap' and c.Attribute != 'Spell':
-            st = 0
-            for stelline in range(0, int(c.Stars)):# Assegnazione stelle
-                dc.DrawBitmap(self.GetSkinImage('Star'), 110 - st,28, True)
-                st += 10
-            
-        if c.Attribute == 'Trap':
-            dc.DrawBitmap(self.GetSkinImage('TrapIcon'), 110,11, True)
-            if c.Type2.find('Continuous') > -1: 
-                dc.DrawBitmap(self.GetSkinImage('ContinuousIcon'), 90,156, True)
-            elif c.Type2.find('Counter') > -1:
-                dc.DrawBitmap(self.GetSkinImage('CounterIcon'), 90,156, True)
-                
-        if c.Attribute == 'Spell':
-            dc.DrawBitmap(self.GetSkinImage('SpellIcon'), 110,11)
-            if c.Type2.find('Counter') > -1:
-                dc.DrawBitmap(self.GetSkinImage('CounterIcon'), 90,156, True)
-            elif c.Type2.find('Equip') > -1:
-                dc.DrawBitmap(self.GetSkinImage('EquipIcon'), 90,156, True)
-            elif c.Type2.find('Field') > -1:
-                dc.DrawBitmap(self.GetSkinImage('FieldIcon'), 90,156, True)
-            elif c.Type2.find('Ritual') > -1:
-                dc.DrawBitmap(self.GetSkinImage('RitualIcon'), 90,156, True)
-            elif c.Type2.find('Quick-Play') > -1:
-                dc.DrawBitmap(self.GetSkinImage('Quick-PlayIcon'), 90,156, True)
-            elif c.Type2.find('Continuous') > -1: 
-                dc.DrawBitmap(self.GetSkinImage('ContinuousIcon'), 90,156, True)
-        
         cbmp = self.GetImageCard(c.Name)
         if not cbmp is -1:
-            dc.DrawBitmap(cbmp, 18, 43)
-        
+            dc.DrawBitmap(cbmp, 0, 0)
         return dc.GetAsBitmap()
 
     def ResizeBitmap(self, bmp, w, h, q=wx.IMAGE_QUALITY_HIGH):
@@ -513,7 +469,7 @@ class Engine():
         path = os.path.join(self.ImagesDirectory, name + '.jpg')
         if os.path.exists(path):
             image = wx.Image(path)
-            image.Rescale(45, 45, wx.IMAGE_QUALITY_HIGH)
+            image.Rescale(62, 88, wx.IMAGE_QUALITY_HIGH)
             return wx.BitmapFromImage(image)
         return -1
 
@@ -521,6 +477,15 @@ class Engine():
         path = os.path.join(self.ImagesDirectory, name + '.jpg')
         if os.path.exists(path):
             return wx.Bitmap(path)
+        if self.GetSetting('ShowFaceUpCardName') == 'Yes':
+            if self.CheckConnection():
+                try:
+                    wname = name.replace(' ', '%20')
+                    file = urllib.urlopen('http://jproject.xz.lt/update/v2/images/%s.jpg' %wname)
+                    im = cStringIO.StringIO(file.read()) # constructs a StringIO holding the image
+                    img = Image.open(im)
+                    img.save('Images' +'/'+ name +'.jpg')
+                except: pass
         return -1
 
     def GetSkin(self): # Metodo che ritorna la skin usata

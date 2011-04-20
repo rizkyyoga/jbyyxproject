@@ -16,9 +16,10 @@
 #    along with moose; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import wx, random, sys, wx.html, wx.richtext, os, webbrowser
+import wx, random, sys, wx.html, wx.richtext, os, webbrowser, re
 import network, engine, packets, keyhandler, dialogs
 from deck import Deck
+from ctypes import *
 
 POS_FIELD = 0
 POS_HAND = 1
@@ -34,6 +35,8 @@ POS_OPP_RFG = 10
 POS_OPP_DECK = 11
 POS_OPP_SIDEDECK = 12
 POS_OPP_FUSIONDECK = 13
+POS_SIDEDECK = 14
+POS_OPP_SIDEDECK
 
 FACE_DOWN = 0
 FACE_UP = 1
@@ -58,6 +61,8 @@ LOOK_OPPONENT_GRAVE_YES = 8
 LOOK_OPPONENT_GRAVE_NO = 9
 LOOK_OPPONENT_RFG_YES = 10
 LOOK_OPPONENT_RFG_NO = 11
+LOOK_SIDEDECK_YES = 12
+LOOK_SIDEDECK_NO = 13
 
 ACTION_DISCARDTOP = 0
 ACTION_REVEALTOP = 1
@@ -149,6 +154,10 @@ class GamePanel(wx.Panel):
         item.SetBitmap(self._engine.GetSkinImage('Toextra'))
         self.Parent.Bind(wx.EVT_MENU, self.OnGamePopupFusionDeck, item)
         self._menuactions.AppendItem(item)
+        #item = wx.MenuItem(self._menuactions,-1,self._engine.GetLangString('Side Deck'))
+        #item.SetBitmap(self._engine.GetSkinImage('Toextra'))
+        #self.Parent.Bind(wx.EVT_MENU, self.OnGamePopupSideDeck, item)
+        #self._menuactions.AppendItem(item)
         item = wx.MenuItem(self._menuactions,-1,self._engine.GetLangString('Roll a D6'))
         item.SetBitmap(self._engine.GetSkinImage('Luck'))
         self.Parent.Bind(wx.EVT_MENU, self.RollD6, item)
@@ -183,8 +192,8 @@ class GamePanel(wx.Panel):
         #self._messagectrl = wx.html.HtmlWindow(self, pos=(703,370), size=(154,330))
         #self._messagectrl.SetFonts('Tahoma','Tahoma',[8,8,8,8,8,8,8])
         #self._messagetext = ''
-        self._messagectrl = wx.richtext.RichTextCtrl(self, pos=(703,420), size=(254,310), style=wx.richtext.RE_MULTILINE|wx.richtext.RE_READONLY|wx.NO_BORDER)
-        self._messagectrl.BeginFont(wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma"))
+        self._messagectrl = wx.richtext.RichTextCtrl(self, pos=(703,440), size=(254,310), style=wx.richtext.RE_MULTILINE|wx.richtext.RE_READONLY|wx.NO_BORDER)
+        self._messagectrl.BeginFont(wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Serpentine-Light"))
         # Smiles
         #self._smiles = ['angel','angry','asd','baby','bana','bhua','biggrin','biglaugha','coffee','censored','byebye','confused','deer','disgust','eek','elf1','elf2','elf3','flamed1','flamed2','freddy','frown','frusta','ghgh','girl','goccia','guns','hammer','hippy','ghgh2','rofl','glass','blush','king','kiss','laugh','lingua','lol','lolly','look','love','mad','metal','ass','nono','no','o','oink','omg','ahsi','laughs','up','down','puke','rain','read','woot','rofl','roll','rolly','rosik','rotfl','sad','saint','sbang','sbav','scratch','ass2','ser','shocked','sigh','silly','smile','smoke','smokin','sheep','spiny','study','sure','talk','tongue','sad2','ueee','wave','woot','yuppi','zzz','afraid']
         self._smiles = ['angel','baby','X','S','D','deer','disgust','down','elf','flame','(','girl','goccia','hippy','king','kiss','laughs','lingua','look','love','mad','metal','no','nu','O','oink','omg','rain','sad','saint','I',')','sheep','shocked','sigh','silly','smoke','smokin','sure','P','up','wave','zzz']
@@ -198,9 +207,11 @@ class GamePanel(wx.Panel):
         self._opponentdecklistctrl = OpponentDeckListControl(self)
         self._opponentrfglistctrl = OpponentRFGListControl(self)
         self._fusiondecklistctrl = FusionDeckListControl(self)
+        self._sidedecklistctrl = SideDeckListControl(self)
         self._opponentfusiondecklistctrl = OpponentFusionDeckListControl(self)
+        self._opponentsidedecklistctrl = OpponentSideDeckListControl(self)
         self._cmdhandlers = {}
-        self._cardsize=wx.Size(60,88)
+        self._cardsize=wx.Size(62,88)
         self.CommandHandlers()
         self._opponentorigdeck = None
         self._opponentfield = []
@@ -245,6 +256,7 @@ class GamePanel(wx.Panel):
         self._opponentdeckctrl = OpponentDeckControl(self._opponentfieldctrl, (20,4), self._engine.GetSkinImage('Deck'))
         # Hand
         self._handctrl = HandControl(self)
+        
         self.RefreshHand()
         # OpponentHand
         self._opponenthandctrl = OpponentHandControl(self)
@@ -316,8 +328,17 @@ class GamePanel(wx.Panel):
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGamePopupResetGame, item)
         # Card Visualization
-        self._cardimagectrl = wx.StaticBitmap(self, -1, size=(136,200), pos=(762,2))
-        self._carddescriptionctrl = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_CENTRE, size=(254,208), pos=(703,206))
+        self._cardnamectrl = wx.StaticText(self, -1, pos=(720,34))
+        fontnameg = wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.BOLD, wx.CENTRE, faceName="Serpentine-Light") 
+        self._cardnamectrl.SetFont(fontnameg) 
+        self._cardimagectrl = wx.StaticBitmap(self, -1, size=(136,200), pos=(762,52))
+        self._cardattributectrl = wx.StaticBitmap(self, -1, size=(32,32), pos=(720,122))
+        self._cardtypectrl = wx.StaticBitmap(self, -1, size=(32,32), pos=(720,88))
+        self._cardtype2ctrl = wx.StaticBitmap(self, -1, size=(32,32), pos=(720,156))
+        self._cardstarsctrl = wx.StaticText(self, -1, style=wx.ALIGN_LEFT, pos=(720,52))
+        fontname22 = wx.Font(20, wx.DEFAULT, wx.NORMAL, wx.BOLD, faceName="Serpentine-Light")
+        self._cardstarsctrl.SetFont(fontname22)
+        self._carddescriptionctrl = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(254,180), pos=(703,260))
         # Hotkeys
         self._keyhandler = keyhandler.KeyHandler()
         self._hotkeys = {}
@@ -369,7 +390,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         wx.AboutBox(info)
 
     def OnConsoleLostFocus(self, event):
-        if self.IsShown() and self.IsShownOnScreen() and not self._decklistctrl.IsActive() and not self._opponentdecklistctrl.IsActive() and not self._gravelistctrl.IsActive() and not self._opponentgravelistctrl.IsActive() and not self._rfglistctrl.IsActive() and not self._opponentrfglistctrl.IsActive() and not self._fusiondecklistctrl.IsActive() and not self._opponentfusiondecklistctrl.IsActive() and not self._smilesdialog.IsActive():
+        if self.IsShown() and self.IsShownOnScreen() and not self._decklistctrl.IsActive() and not self._opponentdecklistctrl.IsActive() and not self._gravelistctrl.IsActive() and not self._opponentgravelistctrl.IsActive() and not self._rfglistctrl.IsActive() and not self._opponentrfglistctrl.IsActive() and not self._fusiondecklistctrl.IsActive() and not self._sidedecklistctrl.IsActive() and not self._opponentfusiondecklistctrl.IsActive() and not self._opponentsidedecklistctrl.IsActive() and not self._smilesdialog.IsActive():
             self._consolectrl.SetFocus()
 
     def Pass(self):
@@ -452,8 +473,19 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self._fusiondecklistctrl.Show()
             self.WriteLookPacket(LOOK_FUSIONDECK_YES)
             self.WriteGameMessage(self._engine.GetLangString("is looking at his Fusion Deck."), CHAT_PLAYER)
+    
+    def OnGamePopupSideDeck(self, event=None):
+        if self._sidedecklistctrl.IsShown():
+            self._sidedecklistctrl.Hide()
+            self.WriteLookPacket(LOOK_SIDEDECK_NO)
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his Side Deck."), CHAT_PLAYER)
+        else:
+            self._sidedecklistctrl.Show()
+            self.WriteLookPacket(LOOK_SIDEDECK_YES)
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his Side Deck."), CHAT_PLAYER)
 
     def OnGamePopupResetGame(self, event=None):
+        self.OnGamePopupSideDeck()
         self.ResetGame()
     
     def GetOrigDeck(self):
@@ -493,11 +525,13 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshRFG()
         self.RefreshGrave()
         self.RefreshFusionDeck()
+        self.RefreshSideDeck()
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
         self.RefreshOpponentRFG()
         self.RefreshOpponentGrave()
         self.RefreshOpponentFusionDeck()
+        self.RefreshOpponentSideDeck()
     
     def OnCardTarget(self, event=None):
         card = self._currentcard
@@ -542,6 +576,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardRFGPopup(c)
         elif pos == POS_DECK:
             self.OnCardDeckPopup(c)
+        elif pos == POS_SIDEDECK:
+            self.OnCardSideDeckPopup(c)
 
     def OnCardHandPopup(self, c):
         menu = wx.Menu()
@@ -603,7 +639,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.MoveCard(self._hand, self._deck, card)
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + 'card' + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshHand()
@@ -613,6 +649,17 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.WriteMoveCardPacket(card, POS_OPP_HAND, 8) # Deck-Shuffle
         self.MoveCard(self._hand, self._hand, card)
         card.SetCardState(POS_HAND)
+        self.ShuffleHand()
+        self.RefreshHand()
+        
+    def OnCardHide(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND, 8) # Deck-Shuffle
+        self.MoveCard(self._hand, self._hand, card)
+        if card.IsFaceUp():
+            card.SetCardState(POS_HAND, face=FACE_DOWN)
+        else:
+            card.SetCardState(POS_HAND, face=FACE_UP)
         self.ShuffleHand()
         self.RefreshHand()
 
@@ -719,7 +766,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + 'card' + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardHandToTopDeck(self, arg=None):
         card = self._opponentcurrentcard
@@ -892,7 +939,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnCardTarget, item)
         item = wx.MenuItem(menu, -1, self._engine.GetLangString('Add Counter'))
-        item.SetBitmap(self._engine.GetSkinImage('Counter'))
+        item.SetBitmap(self._engine.GetSkinImage('CounterA'))
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnCardAddCounter, item)
         item = wx.MenuItem(menu, -1, self._engine.GetLangString('Remove Counter'))
@@ -1418,6 +1465,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshRFG()
         self.RefreshFusionDeck()
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his fusion deck.'), CHAT_PLAYER)
+    
+    def OnCardDeckToSideDeck(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_SIDEDECK)
+        self.MoveCard(self._deck, self._sidedeck, card)
+        card.SetCardState(POS_SIDEDECK)
+        card.Reparent(self._sidedecklistctrl)
+        self.RefreshDeck()
+        self.RefreshSideDeck()
+        self.WriteGameMessage('Moved card from deck to side', CHAT_PLAYER)
 
     def OnCardRFGToTopDeck(self, event=None):
         card = self._currentcard
@@ -1522,6 +1579,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his Extra Deck.', card.GetCardName()), CHAT_OPPONENT)
     
+    def OnOpponentCardDeckToSideDeck(self, event=None):
+        card = self._opponentcurrentcard
+        self.MoveCard(self._opponentdeck, self._opponentsidedeck, card)
+        card.SetCardState(POS_OPP_SIDEDECK)
+        card.Reparent(self._opponentsidedecklistctrl)
+        self.RefreshOpponentSideDeck()
+        self.RefreshOpponentDeck()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
+        self.WriteGameMessage('dsdasdsad', CHAT_OPPONENT)
+    
     def OnOpponentCardRFGToGrave(self, event=None):
         card = self._opponentcurrentcard
         self.MoveCard(self._opponentrfg, self._opponentgrave, card)
@@ -1560,6 +1627,15 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         item.SetBitmap(self._engine.GetSkinImage('Torfg'))
         menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnCardDeckToRFG, item)
+        self._currentcard = c
+        c.PopupMenu(menu)
+    
+    def OnCardSideDeckPopup(self, c):
+        menu = wx.Menu()
+        item = wx.MenuItem(menu, -1, self._engine.GetLangString('To Deck'))
+        item.SetBitmap(self._engine.GetSkinImage('Tohand'))
+        menu.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.OnCardSideDeckToDeck, item)
         self._currentcard = c
         c.PopupMenu(menu)
         
@@ -1620,6 +1696,17 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshFusionDeck()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardSideDeckToDeck(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_DECK)
+        self.MoveCard(self._sidedeck, self._deck, card)
+        card.SetCardState(POS_DECK)
+        card.Reparent(self._decklistctrl)
+        self.RefreshDeck()
+        self.RefreshSideDeck()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage('moved card from Side Deck to Deck', CHAT_PLAYER)
 
     def OnCardFusionDeckToRFG(self, event=None):
         card = self._currentcard
@@ -1956,6 +2043,22 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardRFGToGrave()
         elif c.GetCardPosition() == POS_FUSIONDECK:
             self.OnCardFusionDeckToGrave()
+    
+    def OnCardDropOnDeck(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToDeck()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToDeck()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToDeck()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToDeck()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToDeck()
+        elif c.GetCardPosition() == POS_SIDEDECK:
+            self.OnCardSideDeckToDeck()
 
     def OnCardDropOnRFG(self, x, y, data):
         c = self.GetCardFromSerial(data)
@@ -1994,101 +2097,122 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardGraveToFusionDeck()
         elif c.GetCardPosition() == POS_RFG:
             self.OnCardRFGToFusionDeck()
-
-    '''
-     Per motivi storici lasciamo anche questa versione :P
+    
+    def OnCardDropOnSideDeck(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_SIDEDECK:
+            return
+        elif c.GetCardPosition() == POS_FIELD:
+            return
+        elif c.GetCardPosition() == POS_GRAVE:
+            return
+        elif c.GetCardPosition() == POS_RFG:
+            return
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            return
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToSideDeck()
+        elif c.GetCardPosition() == POS_SIDEDECK:
+            self.OnCardSideDeckToDeck()
+ 
     def RefreshFusionDeck(self):
         l = self._fusiondeck
         n = len(l)
         if n == 0:
             return
-        card_width = self.GetCardSize().GetWidth()
-        self_width = self._fusiondecklistctrl.GetSize().GetWidth()
-        self_height = self._fusiondecklistctrl.GetSize().GetHeight()
         x_pos = 0
+        x_move = 64
         y_pos = 0
-        groups = n/3
-        mod = n%3
-        card_width = self_width/3
-        x_pos = (self_width-(card_width*3))/2
-        x_pos_base = x_pos
-        if mod > 0:
-            card_height = self_height/(groups+1)
-        else:
-            card_height = self_height/groups
-        index = 0
-        for i in range(groups):
-            c = l[index]
-            c.SetPosition((x_pos,y_pos))
-            c.Hide()
-            c.Show()
-            if sys.platform == "win32":
-                c.Lower()
-            x_pos += card_width
-            index += 1
-            c = l[index]
-            c.SetPosition((x_pos,y_pos))
-            c.Hide()
-            c.Show()
-            if sys.platform == "win32":
-                c.Lower()
-            x_pos += card_width
-            index += 1
-            c = l[index]
-            c.SetPosition((x_pos,y_pos))
-            c.Hide()
-            c.Show()
-            if sys.platform == "win32":
-                c.Lower()
-            index += 1
-            x_pos = x_pos_base
-            y_pos += card_height
-        for i in range(mod):
-            c = l[index]
-            c.SetPosition((x_pos,y_pos))
-            c.Hide()
-            c.Show()
-            if sys.platform == "win32":
-                c.Lower()
-            x_pos += card_width
-            index += 1
-        '''
-
-    def RefreshFusionDeck(self):
-        l = self._fusiondeck
-        n = len(l)
-        if n == 0:
-            return
-        y_pos = 0
-        y_move = 12
+        y_move = 90
         self._fusiondecklistctrl.Scroll.Scroll(0,0)
+        xtmp = 0
+        ytmp = 0
         for c in l:
+            if xtmp == 5:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._fusiondecklistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._fusiondecklistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._fusiondecklistctrl.Scroll.SetScrollbars(0, 20, 0, n)
+  
+    def RefreshSideDeck(self):
+        l = self._sidedeck
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        self._sidedecklistctrl.Scroll.Scroll(0,0)
+        xtmp = 0
+        ytmp = 0
+        for c in l:
+            if xtmp == 5:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._sidedecklistctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._sidedecklistctrl.Scroll.SetScrollbars(0, 20, 0, n)
 
     def RefreshOpponentFusionDeck(self):
         l = self._opponentfusiondeck
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
         self._opponentfusiondecklistctrl.Scroll.Scroll(0,0)
+        xtmp = 0
+        ytmp = 0
         for c in l:
+            if xtmp == 5:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._opponentfusiondecklistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._opponentfusiondecklistctrl.Scroll.SetScrollbars(0, 12, 0, n)
-
-    def RefreshGrave(self):
+            xtmp= xtmp+1
+        self._opponentfusiondecklistctrl.Scroll.SetScrollbars(0, 20, 0, n)
+        
+    def RefreshOpponentSideDeck(self):
+        l = self._opponentsidedeck
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        self._opponentsidedecklistctrl.Scroll.Scroll(0,0)
+        xtmp = 0
+        ytmp = 0
+        for c in l:
+            if xtmp == 5:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._opponentsidedecklistctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._opponentsidedecklistctrl.Scroll.SetScrollbars(0, 20, 0, n)
+        
+    '''def RefreshGrave(self):
         self._gravectrl.UpdateCardTooltip(self._grave)
         l = self._grave
         n = len(l)
@@ -2104,25 +2228,57 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             c.Hide()
             c.Show()
             y_pos += y_move
-        self._gravelistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+        self._gravelistctrl.Scroll.SetScrollbars(0, 12, 0, n)'''
 
+    def RefreshGrave(self):
+        self._gravectrl.UpdateCardTooltip(self._grave)
+        l = self._grave
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._gravelistctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._gravelistctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._gravelistctrl.Scroll.SetScrollbars(0, 11, 0, n)
+        
     def RefreshOpponentGrave(self):
         self._opponentgravectrl.UpdateCardTooltip(self._opponentgrave)
         l = self._opponentgrave
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
         self._opponentgravelistctrl.Scroll.Scroll(0,0)
         for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._opponentgravelistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._opponentgravelistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._opponentgravelistctrl.Scroll.SetScrollbars(0, 11, 0, n)
 
     def RefreshRFG(self):
         self._rfgctrl.UpdateCardTooltip(self._rfg)
@@ -2130,17 +2286,24 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
         self._rfglistctrl.Scroll.Scroll(0,0)
         for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._rfglistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._rfglistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._rfglistctrl.Scroll.SetScrollbars(0, 11, 0, n)
 
     def RefreshOpponentRFG(self):
         l = self._opponentrfg
@@ -2148,57 +2311,81 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
         self._opponentrfglistctrl.Scroll.Scroll(0,0)
         for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._opponentrfglistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._opponentrfglistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._opponentrfglistctrl.Scroll.SetScrollbars(0, 11, 0, n)
 
+    
     def RefreshDeck(self):
         l = self._deck
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
         self._decklistctrl.Scroll.Scroll(0,0)
+        xtmp = 0
+        ytmp = 0
         for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._decklistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._decklistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._decklistctrl.Scroll.SetScrollbars(0, 11, 0, n)
+
 
     def RefreshOpponentDeck(self):
         l = self._opponentdeck
         n = len(l)
         if n == 0:
             return
+        x_pos = 0
+        x_move = 64
         y_pos = 0
-        y_move = 12
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
         self._opponentdecklistctrl.Scroll.Scroll(0,0)
         for c in l:
+            if xtmp == 10:
+                xtmp = 0
+                ytmp = ytmp+1
             c.RefreshTexture()
-            c.SetPosition((0,y_pos))
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
             c.Reparent(self._opponentdecklistctrl.Scroll)
             c.Hide()
             c.Show()
-            y_pos += y_move
-        self._opponentdecklistctrl.Scroll.SetScrollbars(0, 12, 0, n)
+            xtmp= xtmp+1
+        self._opponentdecklistctrl.Scroll.SetScrollbars(0, 11, 0, n)
 
     def RefreshHand(self):
         l = self._hand
         n = len(l)
         if n < 1:
             return
+        self._handctrl.Show()
         card_width = self.GetCardSize().GetWidth() + 2
         self_width = self._handctrl.GetSize().GetWidth()
         self_mid = self_width/2
@@ -2250,10 +2437,28 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         else:
             return False
 
-    def RefreshCardInfo(self, name, bmp, desc):
+    def RefreshCardInfo(self, name, bmp, desc, attrib, type2, stars, typecf, typecm):
+        self._cardnamectrl.SetLabel(name)
         self._cardimagectrl.SetBitmap(bmp)
         self._carddescriptionctrl.SetValue(desc)
+        self._cardtypectrl.SetBitmap(self._engine.GetSkinImage(typecm))
+        self._cardattributectrl.SetBitmap(self._engine.GetSkinImage(attrib))
+        if len(type2) > 0:
+            self._cardtype2ctrl.SetBitmap(self._engine.GetSkinImage(type2))
+        else:
+            self._cardtype2ctrl.SetBitmap(self._engine.GetSkinImage('blank'))
+        self._cardstarsctrl.SetLabel(stars)
+        if typecf == 'Tuner':
+            self._cardstarsctrl.SetForegroundColour((0,145,0))
+        else:
+            self._cardstarsctrl.SetForegroundColour((0,0,0))
+                
+        if attrib == 'Spell' or attrib == 'Trap':
+            self._cardstarsctrl.SetLabel('')
+            self._cardtypectrl.SetBitmap(self._engine.GetSkinImage('blank'))
+            
 
+  
     def RollDice(self, faces):
         n = random.randint(1,int(faces))
         self.WriteRollPacket(faces, n)
@@ -2524,6 +2729,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         for c in self._fusiondeck:
             if c.GetSerial() == serial:
                 return c
+        for c in self._sidedeck:
+            if c.GetSerial() == serial:
+                return c
+
         return -1
 
     def NewCardSerial(self):
@@ -2548,6 +2757,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             if c.GetSerial() == serial:
                 return c
         for c in self._opponentfusiondeck:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._opponentsidedeck:
             if c.GetSerial() == serial:
                 return c
         return -1
@@ -3150,7 +3362,7 @@ class FieldControl(wx.Panel, wx.TextDropTarget):
         wx.Panel.__init__(self, parent, -1, pos=(0,375), size=(700,300))
         self.SetDropTarget(FieldDropTarget(parent))
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self._background = parent._engine.GetSkinImage('Field')
+        self._background = parent._engine.GetSkinImage('FieldPlayer')
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
@@ -3179,7 +3391,7 @@ class OpponentFieldControl(wx.Panel):
 class DeckListControl(wx.Frame):
     def __init__(self, parent):
         self._game = parent
-        wx.Frame.__init__(self, parent, -1, 'Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Deck', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3190,7 +3402,7 @@ class DeckListControl(wx.Frame):
 
 class OpponentDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent Deck', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3199,18 +3411,18 @@ class OpponentDeckListControl(wx.Frame):
     def OnClose(self, event=None):
         self.Hide()
         
-'''class DeckListDropTarget(wx.TextDropTarget):
+class DeckListDropTarget(wx.TextDropTarget):
     def __init__(self, game):
         wx.TextDropTarget.__init__(self)
         self._game = game
     
     def OnDropText(self, x, y, data):
         self._game.OnCardDropOnDeck(x, y, data)
-        pass'''
+        pass
 
 class OpponentGraveListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent Graveyard', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent Graveyard', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3221,7 +3433,7 @@ class OpponentGraveListControl(wx.Frame):
 
 class GraveListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Graveyard', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Graveyard', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(GraveListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
@@ -3241,7 +3453,7 @@ class GraveListDropTarget(wx.TextDropTarget):
 
 class OpponentRFGListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Opponent RFG', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Opponent RFG', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3252,7 +3464,18 @@ class OpponentRFGListControl(wx.Frame):
 
 class OpponentFusionDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "Opponent's Fusion-Deck", pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, "Opponent's Extra-Deck", pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Hide()
+
+class OpponentSideDeckListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, "Opponent's Side-Deck", pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3263,7 +3486,7 @@ class OpponentFusionDeckListControl(wx.Frame):
 
 class FusionDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'Fusion-Deck', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'Extra-Deck', pos=(400,300), size=(345,298), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(FusionDeckListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
@@ -3273,6 +3496,18 @@ class FusionDeckListControl(wx.Frame):
     def OnClose(self, event=None):
         self.Parent.OnGamePopupFusionDeck()
 
+class SideDeckListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Side-Deck', pos=(400,300), size=(345,298), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(SideDeckListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnGamePopupSideDeck()
+
 class FusionDeckListDropTarget(wx.TextDropTarget):
     def __init__(self, game):
         wx.TextDropTarget.__init__(self)
@@ -3281,9 +3516,17 @@ class FusionDeckListDropTarget(wx.TextDropTarget):
     def OnDropText(self, x, y, data):
         self._game.OnCardDropOnFusionDeck(x, y, data)
 
+class SideDeckListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnSideDeck(x, y, data)
+
 class RFGListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, 'RFG', pos=(400,300), size=(168,200), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, 'RFG', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.SetDropTarget(RFGListDropTarget(parent))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
@@ -3306,6 +3549,10 @@ class DeckControl(GameObject):
         GameObject.__init__(self, parent, pos, t)
     
 class FusionDeckControl(GameObject):
+    def __init__(self, parent, pos, t):
+        GameObject.__init__(self, parent, pos, t)
+    
+class SideDeckControl(GameObject):
     def __init__(self, parent, pos, t):
         GameObject.__init__(self, parent, pos, t)
 
@@ -3446,6 +3693,13 @@ class HandControl(wx.Panel):
         wx.Panel.__init__(self, parent, pos=(1,676), size=(698,100))
         self.SetBackgroundColour(wx.Colour(33,35,36))
         self.SetDropTarget(HandListDropTarget(parent))
+        
+'''class HandControl(wx.Frame):
+    def __init__(self, parent):
+        self._game = parent
+        wx.Frame.__init__(self, parent, -1, 'Hand', pos=(1,676), size=(698,100), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT)
+        self.SetBackgroundColour(wx.Colour(33,35,36))
+        self.SetDropTarget(HandListDropTarget(parent))'''
 
 class HandListDropTarget(wx.TextDropTarget):
     def __init__(self, game):
@@ -3531,6 +3785,7 @@ class ScoreControl(GameObject):
         dc = wx.PaintDC(self)
         dc.Clear()
         dc.DrawBitmap(self._texture, 0, 0, True)
+        
         font = wx.Font(pointSize=9,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma")
         font.SetNoAntiAliasing(True)
         dc.SetFont(font)
@@ -3682,14 +3937,29 @@ class CardControl(GameObject, wx.DataObjectSimple):
         self._game.OnCardPopup(self)
     
     def OnMouseOver(self, event):
-        desc = self._card.Name + '\n'+ self._card.Type
+        type2=''
+        desc = self._card.Type + '\n'
         if len(self._card.Type2) > 0:
-            desc += '/' + self._card.Type2
-        if  self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
-            desc += '/' + self._card.Attribute + '/' + self._card.Stars + '\n'
-            desc +='ATK/' + self._card.Atk + ' DEF/' + self._card.Def
-        desc +='\n' + self._card.Effect
-        self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc)
+            desc += self._card.Type2 + '\n'
+            type2 = self._card.Type2
+        desc += '\n' + self._card.Effect
+        attrib = self._card.Attribute
+        stars = self._card.Stars + '*'
+        typecf=''
+        typec = re.search('Tuner', self._card.Type)
+        if typec:
+            typecf = typec.group ( 0 )
+        typecm= ''
+        if attrib != 'Spell' or attrib!= 'Trap':
+            string = "/"
+            typecm = ''
+            f = self._card.Type
+            for character in f:
+                if character.find(string) == -1:
+                    typecm=typecm+character
+                else:
+                    break
+        self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc, attrib, type2, stars, typecf, typecm)
     
     def RefreshTexture(self):
         self._texture = self._engine.GetCardImage(self)
@@ -3709,11 +3979,11 @@ class CardControl(GameObject, wx.DataObjectSimple):
     def GetCardName(self):
         return self._card.Name
     
-    def GetCardStats(self):
+    '''def GetCardStats(self):
         if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
             return self._card.Atk + '/' + self._card.Def
         else:
-            return self._card.Atk + ' ' + self._card.Def
+            return self._card.Atk + ' ' + self._card.Def'''
     
     def GetCardEffect(self):
         return self._card.Effect
@@ -3846,7 +4116,6 @@ class CardControl(GameObject, wx.DataObjectSimple):
         font.SetNoAntiAliasing(True)
         dc.SetFont(font)
         name = self.GetCardName()
-        stats = self.GetCardStats()
         p = self.GetCardPosition()
         if p == 2 or p == 3 or p == 4 or p == 5 or p == 6:
             name = name[:26]
@@ -3854,47 +4123,8 @@ class CardControl(GameObject, wx.DataObjectSimple):
             ny = 1
             sx = 10
             sy = 10
-            dc.SetTextForeground(wx.BLACK)
-        else:
-            if self.IsVertical():
-                name = name#[:14]
-                stats = stats
-            else:
-                name = name#[:20]
-                stats = stats
-                dc.DrawText(stats, 4, 44)
-            if self.IsFaceDown():
-                dc.SetTextForeground(wx.WHITE)
-                nx = 3
-                ny = 2
-                sx = 4
-                sy = 44
-            else:
-                dc.SetTextForeground(wx.BLACK)
-                nx = 3
-                ny = 2
-                sx = 4
-                sy = 68
-        if self.IsFaceDown():
-            namelines = name.split(' ')
-            drawtext = ''
-            for line in namelines:
-                newtext = drawtext + ' ' + line
-                extent = dc.GetTextExtent(newtext)
-                if extent[0] < self.GetSize().GetWidth()-3:
-                    if drawtext:
-                        drawtext += ' %s' % line
-                    else:
-                        drawtext = line
-                else:
-                    dc.DrawText(drawtext, nx, ny)
-                    ny += extent[1] + 1
-                    drawtext = line
-                    dc.DrawText(stats, sx, sy)
-            dc.DrawText(drawtext, nx, ny)
-        elif not self._engine.GetSetting('ShowFaceUpCardName') == 'No':
-            dc.DrawText(name, nx, ny)
-            dc.DrawText(stats, sx, sy)
+            '''dc.SetTextForeground(wx.BLACK)
+            dc.DrawText(name, nx, ny)'''
         if self.IsTarget():
             tbmp = self._engine.GetSkinImage('Target')
             if self.IsVertical():
@@ -3960,14 +4190,29 @@ class OpponentCardControl(GameObject):
     def OnMouseOver(self, event):
         if self.IsFaceDown():
             return
-        desc = self._card.Name + '\n'+ self._card.Type
+        type2=''
+        desc = self._card.Type + '\n'
         if len(self._card.Type2) > 0:
-            desc += '/' + self._card.Type2
-        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap':
-            desc += '/' + self._card.Attribute + '/' + self._card.Stars + '\n'
-            desc +='Atk/' + self._card.Atk + ' Def/' + self._card.Def
-        desc +='\n' + self._card.Effect
-        self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc)
+            desc += self._card.Type2 + '\n'
+            type2 = self._card.Type2
+        desc += '\n' + self._card.Effect
+        attrib = self._card.Attribute
+        stars = self._card.Stars + '*'
+        typecf=''
+        typec = re.search('Tuner', self._card.Type)
+        if typec:
+            typecf = typec.group ( 0 )
+        typecm= ''
+        if attrib != 'Spell' or attrib!= 'Trap':
+            string = "/"
+            typecm = ''
+            f = self._card.Type
+            for character in f:
+                if character.find(string) == -1:
+                    typecm=typecm+character
+                else:
+                    break
+        self._game.RefreshCardInfo(self._card.Name, self._engine.GetBigCardImage(self._card), desc, attrib, type2, stars, typecf, typecm)
     
     def RefreshTexture(self):
         self._texture = self._engine.GetCardImage(self)
@@ -4102,29 +4347,14 @@ class OpponentCardControl(GameObject):
         font.SetNoAntiAliasing(True)
         dc.SetFont(font)
         name = self.GetCardName()
-        stats = self.GetCardStats()
         p = self.GetCardPosition()
-        if self.IsFaceUp() and not self._engine.GetSetting('ShowFaceUpCardName') == 'No':
-            if p == 9 or p == 10 or p == 11 or p == 12 or p == 13:
-                name = name[:26]
-                nx = 2
-                ny = 1
-                sx = 10
-                sy = 10
-                dc.SetTextForeground(wx.BLACK)
-            else:
-                if self.IsVertical():
-                    name = name[:14]
-                    stats = stats
-                    nx = 3
-                    ny = 2
-                    dc.DrawText(stats, 4, 68)
-                else:
-                    name = name[:20]
-                    stats = stats
-                    nx = 3
-                    ny = 2
-                    dc.DrawText(stats, 4, 44)
+        if p == 9 or p == 10 or p == 11 or p == 12 or p == 13:
+            name = name[:26]
+            nx = 2
+            ny = 1
+            sx = 10
+            sy = 10
+            dc.SetTextForeground(wx.BLACK)
             dc.DrawText(name, nx, ny)
         if self.IsTarget():
             tbmp = self._engine.GetSkinImage('Target')
@@ -4142,7 +4372,7 @@ class OpponentCardControl(GameObject):
                 dc.DrawText(str(self._counters), 8, 48)
             else:
                 dc.DrawText(str(self._counters), 7, 22)
-
+    
 class Note(GameObject):
     def __init__(self, parent, pos, game):
         self._game = game
