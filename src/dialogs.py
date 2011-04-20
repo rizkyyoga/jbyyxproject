@@ -440,7 +440,7 @@ class SettingsDialog(wx.Dialog):
         else:
             self.OpenLastDeckChoice.SetValue(True)
 
-        self.ShowFaceUpCardNameText = wx.StaticText(self, -1, "Face-Up Cards Name:")
+        self.ShowFaceUpCardNameText = wx.StaticText(self, -1, "Automatic Images Update:")
         self.ShowFaceUpCardNameChoice = wx.CheckBox(self, -1, label='', style=wx.ALIGN_RIGHT)
         if self.Frame.Engine.GetSetting('ShowFaceUpCardName') == 'No':
             self.ShowFaceUpCardNameChoice.SetValue(False)
