@@ -268,7 +268,7 @@ class AdvancedSearch(wx.Dialog):
         c = self.CardTypeChoice.GetStringSelection()
         if (c=='Monster'):
             self.CardSubTypeChoice.Clear()
-            self.CardSubTypeChoice.AppendItems(['Any','Normal','Effect','Fusion','Ritual','Synchro','Toon','Tuner','Gemini','Union'])
+            self.CardSubTypeChoice.AppendItems(['Any','Normal','Effect','Fusion','Ritual','Synchro','Exceed','Toon','Tuner','Gemini','Union'])
             self.CardSubTypeChoice.SetStringSelection('Any')
             self.CardSubTypeText.Show()
             self.CardSubTypeChoice.Show()

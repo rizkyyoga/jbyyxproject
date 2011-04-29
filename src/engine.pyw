@@ -272,6 +272,9 @@ class Engine():
                         s1.append(c)
                 elif li[3] == 'Synchro':
                     if c.Type.count('Synchro'):
+                        s1.append(c)
+                elif li[3] == 'Exceed':
+                    if c.Type.count('Exceed'):
                         s1.append(c)    
                 elif li[3] == 'Ritual':
                     if c.Type.count('Ritual'):
@@ -370,7 +373,9 @@ class Engine():
                     if ty.find('Fusion') > -1:
                      b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
                     elif ty.find('Synchro') > -1:
-                        b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)     
+                        b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)
+                    elif ty.find('Exceed') > -1:
+                        b = self.ResizeBitmap(self.GetSkinImage('Exceed'), 62, 88)   
                     elif ty.find('Ritual') > -1:
                         b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
                     elif ty.find('Token') > -1:
@@ -397,7 +402,9 @@ class Engine():
             if ty.find('Fusion') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
             elif ty.find('Synchro') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)              
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)
+            elif ty.find('Exceed') > -1:
+                b = self.ResizeBitmap(self.GetSkinImage('Exceed'), 62, 88)
             elif ty.find('Ritual') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
             elif ty.find('Token') > -1:
@@ -426,7 +433,9 @@ class Engine():
             if ty.find('Fusion') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Fusion'), 62, 88)
             elif ty.find('Synchro') > -1:
-                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)     
+                b = self.ResizeBitmap(self.GetSkinImage('Synchro'), 62, 88)
+            elif ty.find('Exceed') > -1:
+                b = self.ResizeBitmap(self.GetSkinImage('Exceed'), 62, 88)  
             elif ty.find('Ritual') > -1:
                 b = self.ResizeBitmap(self.GetSkinImage('Ritualc'), 62, 88)
             elif ty.find('Token') > -1:
@@ -609,9 +618,11 @@ class Engine():
         self.Deck = deck.Deck()
         for node in xmldoc.firstChild.childNodes:
             c = self.FindCardByCode(node.getAttribute('code'))
-            if node.getAttribute('side') == '1':
-                c.IsSide = 1
-            self.Deck.Add(c)
+            cc = self.Deck.CheckCard(node.getAttribute('code'))
+            if cc < 3:
+                if node.getAttribute('side') == '1':
+                    c.IsSide = 1
+                self.Deck.Add(c)
 
     def NewDeck(self):
         self.Deck = deck.Deck()
