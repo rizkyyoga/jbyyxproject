@@ -133,9 +133,9 @@ class MainFrame(wx.Frame):
         self.SideListCtrl.SetColumnWidth(0, 200)
         self.SideListCtrl.InsertColumn(1, 'Code')
         self.SideListCtrl.SetColumnWidth(1, 0)
-        self.FusionHeaderText = wx.StaticText(self.panel, -1, 'Fusion Deck: 0')
+        self.FusionHeaderText = wx.StaticText(self.panel, -1, 'Extra Deck: 0')
         self.FusionListCtrl = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT |  wx.LC_SINGLE_SEL | wx.LC_NO_HEADER | wx.LC_HRULES)
-        self.FusionListCtrl.InsertColumn(0, 'Fusion-Deck')
+        self.FusionListCtrl.InsertColumn(0, 'Extra-Deck')
         self.FusionListCtrl.SetColumnWidth(0, 200)
         self.FusionListCtrl.InsertColumn(1, 'Code')
         self.FusionListCtrl.SetColumnWidth(1, 0)
@@ -278,10 +278,10 @@ class MainFrame(wx.Frame):
         item = self.mGame.Append(ID_LISTEN, text = self.Engine.GetLangString('Listen'))
         self.Bind(wx.EVT_MENU, self.OnListenMenu, item)
 
-        #item = wx.MenuItem(self.mGame,-1,self.Engine.GetLangString('Duel Channel'))
-        #item.SetBitmap(self.Engine.GetSkinImage('Chat'))
-        #self.Bind(wx.EVT_MENU, self.OnDuelChannelMenu, item)
-        #self.mGame.AppendItem(item)
+        item = wx.MenuItem(self.mGame,-1,self.Engine.GetLangString('Duel Channel'))
+        item.SetBitmap(self.Engine.GetSkinImage('Chat'))
+        self.Bind(wx.EVT_MENU, self.OnDuelChannelMenu, item)
+        self.mGame.AppendItem(item)
 
         item = self.mGame.Append(ID_PLAY, text = self.Engine.GetLangString('Test'))
         self.Bind(wx.EVT_MENU, self.OnPlayMenu, item)
@@ -438,18 +438,30 @@ class MainFrame(wx.Frame):
         return dialog.ShowModal()
     
     def OnConnectMenu(self, event):
-        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
-        self.Engine.Game = self.Engine.GameFrame.Game
-        self.Engine.Network = network.Network(self.Engine.Game)
-        dialog = dialogs.ConnectionDialog(self)
-        dialog.ShowModal()
-    
+        totalcard = self.MonsterListCtrl.GetItemCount()+self.SpellListCtrl.GetItemCount()+self.TrapListCtrl.GetItemCount()
+        if totalcard > 39 and totalcard <61 and self.FusionListCtrl.GetItemCount() < 16 and self.SideListCtrl.GetItemCount() < 16: 
+            self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
+            self.Engine.Game = self.Engine.GameFrame.Game
+            self.Engine.Network = network.Network(self.Engine.Game)
+            dialog = dialogs.ConnectionDialog(self)
+            try:
+                dialog.ShowModal()
+            except: pass
+        else:
+            self.ShowDialog('Your deck is not ready!', 'Deck Error', wx.OK | wx.NO_DEFAULT | wx.ICON_QUESTION)
+
     def OnListenMenu(self, event):
-        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
-        self.Engine.Game = self.Engine.GameFrame.Game
-        self.Engine.Network = network.Network(self.Engine.Game)
-        dialog = dialogs.ListenDialog(self)
-        dialog.ShowModal()
+        totalcard = self.MonsterListCtrl.GetItemCount()+self.SpellListCtrl.GetItemCount()+self.TrapListCtrl.GetItemCount()
+        if totalcard > 39 and totalcard <61 and self.FusionListCtrl.GetItemCount() < 16 and self.SideListCtrl.GetItemCount() < 16: 
+            self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
+            self.Engine.Game = self.Engine.GameFrame.Game
+            self.Engine.Network = network.Network(self.Engine.Game)
+            dialog = dialogs.ListenDialog(self)
+            try:
+                dialog.ShowModal()
+            except: pass
+        else:
+            self.ShowDialog('Your deck is not ready!', 'Deck Error', wx.OK | wx.NO_DEFAULT | wx.ICON_QUESTION)
 
     def OnPlayMenu(self, event):
         self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
@@ -460,13 +472,17 @@ class MainFrame(wx.Frame):
         self.Engine.GameFrame.Show()
 
     def OnRoomsMenu(self, event):
-        self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
-        self.Engine.Game = self.Engine.GameFrame.Game
-        self.Engine.Network = network.Network(self.Engine.Game)
-        dialog = room.Login(self)
-        dialog.ShowModal()
-        try: dialog.EndTimer()
-        except: pass
+        totalcard = self.MonsterListCtrl.GetItemCount()+self.SpellListCtrl.GetItemCount()+self.TrapListCtrl.GetItemCount()
+        if totalcard > 39 and totalcard <61 and self.FusionListCtrl.GetItemCount() < 16 and self.SideListCtrl.GetItemCount() < 16: 
+            self.Engine.GameFrame = gameframe.GameFrame(self.Engine)
+            self.Engine.Game = self.Engine.GameFrame.Game
+            self.Engine.Network = network.Network(self.Engine.Game)
+            dialog = room.Login(self)
+            dialog.ShowModal()
+            try: dialog.EndTimer()
+            except: pass
+        else:
+            self.ShowDialog('Your deck is not ready!', 'Deck Error', wx.OK | wx.NO_DEFAULT | wx.ICON_QUESTION)
         
     
     def OnAdvancedSearchMenu(self, event):
@@ -564,13 +580,19 @@ class MainFrame(wx.Frame):
         self.CardStarsCtrl.SetLabel(card.Stars + '*')
         typecf=''
         typec = re.search('Tuner', card.Type)
+        typeE = re.search('Exceed', card.Type)
         if typec:
             typecf = typec.group ( 0 )
         if typecf == 'Tuner':
             self.CardStarsCtrl.SetForegroundColour((0,145,0))
         else:
             self.CardStarsCtrl.SetForegroundColour((0,0,0))
-                
+        if typeE:
+            typecf = typeE.group ( 0 )
+        if typecf == 'Exceed':
+            self.CardStarsCtrl.SetForegroundColour((0,0,255))
+        else:
+            self.CardStarsCtrl.SetForegroundColour((0,0,0))
         if card.Attribute == 'Spell' or card.Attribute == 'Trap':
             self.CardStarsCtrl.SetLabel('')
             
@@ -596,7 +618,9 @@ class MainFrame(wx.Frame):
         if self.SelectedFromDeck == '':
             return
         c = self.Engine.FindCardByCode(self.SelectedFromDeck)
-        self.Engine.Deck.Add(c)
+        cc = self.Engine.Deck.CheckCard(self.SelectedFromDeck)
+        if cc < 3:
+            self.Engine.Deck.Add(c)
         self.RefreshCardList()
 
 
@@ -605,11 +629,12 @@ class MainFrame(wx.Frame):
         if self.SelectedFromDeck == '':
             return
         c = self.Engine.FindCardByCode(self.SelectedFromDeck)
-        if c.Type.find('Fusion') > -1:
-            self.ShowDialog("...",'!',wx.OK | wx.ICON_ERROR)
+        if c.Type.find('Fusion') > -1 or c.Type.find('Synchro') > -1 or c.Type.find('Exceed') > -1:
             return
+        cc = self.Engine.Deck.CheckCard(self.SelectedFromDeck)
         c.IsSide = 1
-        self.Engine.Deck.Add(c)
+        if cc < 3:
+            self.Engine.Deck.Add(c)
         self.RefreshCardList()
 
     # Metodo che rimuove la carta selezionata dal deck/side
@@ -708,7 +733,7 @@ class MainFrame(wx.Frame):
     
     def OnDuelChannelMenu(self, event=None):
         try:
-            webbrowser.open_new_tab('http://webchat.azzurra.org/irc.cgi?chan=%23moose-duel')
+            webbrowser.open_new_tab('http://qchat.rizon.net/?channels=J_PROJECT&uio=d4')
         except: pass
 
     # Apre il dialogo delle impostazioni

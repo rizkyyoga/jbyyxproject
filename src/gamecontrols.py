@@ -35,8 +35,16 @@ POS_OPP_RFG = 10
 POS_OPP_DECK = 11
 POS_OPP_SIDEDECK = 12
 POS_OPP_FUSIONDECK = 13
-POS_SIDEDECK = 14
-POS_OPP_SIDEDECK
+POS_STACK_1 = 14
+POS_STACK_2 = 15
+POS_STACK_3 = 16
+POS_STACK_4 = 17
+POS_STACK_5 = 18
+POS_OPP_STACK_1 = 19
+POS_OPP_STACK_2 = 20
+POS_OPP_STACK_3 = 21
+POS_OPP_STACK_4 = 22
+POS_OPP_STACK_5 = 23
 
 FACE_DOWN = 0
 FACE_UP = 1
@@ -63,6 +71,26 @@ LOOK_OPPONENT_RFG_YES = 10
 LOOK_OPPONENT_RFG_NO = 11
 LOOK_SIDEDECK_YES = 12
 LOOK_SIDEDECK_NO = 13
+LOOK_STACK_1_YES = 14
+LOOK_STACK_1_NO = 15
+LOOK_STACK_2_YES = 16
+LOOK_STACK_2_NO = 17
+LOOK_STACK_3_YES = 18
+LOOK_STACK_3_NO = 19
+LOOK_STACK_4_YES = 20
+LOOK_STACK_4_NO = 21
+LOOK_STACK_5_YES = 22
+LOOK_STACK_5_NO = 23
+LOOK_OPP_STACK_1_YES = 24
+LOOK_OPP_STACK_1_NO = 25
+LOOK_OPP_STACK_2_YES = 26
+LOOK_OPP_STACK_2_NO = 27
+LOOK_OPP_STACK_3_YES = 28
+LOOK_OPP_STACK_3_NO = 29
+LOOK_OPP_STACK_4_YES = 30
+LOOK_OPP_STACK_4_NO = 31
+LOOK_OPP_STACK_5_YES = 32
+LOOK_OPP_STACK_5_NO = 33
 
 ACTION_DISCARDTOP = 0
 ACTION_REVEALTOP = 1
@@ -115,11 +143,17 @@ class GamePanel(wx.Panel):
         self._rfg = []
         self._hand = []
         self._consolectrl = ConsoleCtrl(self)
+        #stacks
+        self._stack1 = []
+        self._stack2 = []
+        self._stack3 = []
+        self._stack4 = []
+        self._stack5 = []
         # Menu
         self._menu = wx.MenuBar()
         
         self._menufile = wx.Menu()
-        item = wx.MenuItem(self._menufile,-1,self._engine.GetLangString('Game Reset'))
+        item = wx.MenuItem(self._menufile,-1,self._engine.GetLangString('Reset Game/Side'))
         item.SetBitmap(self._engine.GetSkinImage('Reload'))
         self.Parent.Bind(wx.EVT_MENU, self.OnGamePopupResetGame, item)
         self._menufile.AppendItem(item)
@@ -201,6 +235,19 @@ class GamePanel(wx.Panel):
         self._consolectrl.SetFont(wx.Font(pointSize=8,family=wx.FONTFAMILY_DEFAULT,style=wx.FONTSTYLE_NORMAL,weight=wx.FONTWEIGHT_NORMAL, faceName="Tahoma"))
         self._consolectrl.SetFocus()
         self._gravelistctrl = GraveListControl(self)
+        #stacks
+        self._stack_1_listctrl = Stack_1_ListControl(self)
+        self._stack_2_listctrl = Stack_2_ListControl(self)
+        self._stack_3_listctrl = Stack_3_ListControl(self)
+        self._stack_4_listctrl = Stack_4_ListControl(self)
+        self._stack_5_listctrl = Stack_5_ListControl(self)
+        
+        #self._oppstack_1_listctrl = OppStack_1_ListControl(self)
+        #self._oppstack_2_listctrl = OppStack_2_ListControl(self)
+        #self._oppstack_3_listctrl = OppStack_3_ListControl(self)
+        #self._oppstack_4_listctrl = OppStack_4_ListControl(self)
+        #self._oppstack_5_listctrl = OppStack_5_ListControl(self)
+        
         self._decklistctrl = DeckListControl(self)
         self._rfglistctrl = RFGListControl(self)
         self._opponentgravelistctrl = OpponentGraveListControl(self)
@@ -213,6 +260,11 @@ class GamePanel(wx.Panel):
         self._cmdhandlers = {}
         self._cardsize=wx.Size(62,88)
         self.CommandHandlers()
+        #self._oppstack1 = []
+        #self._oppstack2 = []
+        #self._oppstack3 = []
+        #self._oppstack4 = []
+        #self._oppstack5 = []
         self._opponentorigdeck = None
         self._opponentfield = []
         self._opponentdeck = []
@@ -233,13 +285,37 @@ class GamePanel(wx.Panel):
         self._deckctrl = DeckControl(self._fieldctrl, (619,206), self._engine.GetSkinImage('Deck'))
         self._deckctrl.Bind(wx.EVT_LEFT_DCLICK, self.OnDeckDClick)
         self._deckctrl.Bind(wx.EVT_RIGHT_UP, self.OnDeckRClick)
+        self._deckcounttext = wx.StaticText(self._fieldctrl, -1, '0', pos=(640,230))
         # FusionDeck
         self._fusiondeckctrl = FusionDeckControl(self._fieldctrl, (20,166), self._engine.GetSkinImage('FusionDeck'))
         self._fusiondeckctrl.Bind(wx.EVT_LEFT_UP, self.OnGamePopupFusionDeck)
+        self._extradeckcounttext = wx.StaticText(self._fieldctrl, -1, '0', pos=(41,190))
+        self._oppextradeckcounttext = wx.StaticText(self._opponentfieldctrl, -1, '0', pos=(640,60))
         # Grave
         self._gravectrl = GraveControl(self._fieldctrl, (619,109), self._engine.GetSkinImage('Grave'), self)
         self._gravectrl.Bind(wx.EVT_LEFT_UP, self.OnGraveLClick)
         self._gravectrl.UpdateCardTooltip(self._grave)
+        #Stacks
+        self._stack1ctrl = Stack_1_Control(self._fieldctrl, (126,28), self._engine.GetSkinImage('Stack'), self)
+        self._stack1ctrl.Bind(wx.EVT_LEFT_UP, self.OnStack_1_LClick)
+        self._stack1ctrl.UpdateCardTooltip(self._stack1)
+        
+        self._stack2ctrl = Stack_2_Control(self._fieldctrl, (223,28), self._engine.GetSkinImage('Stack'), self)
+        self._stack2ctrl.Bind(wx.EVT_LEFT_UP, self.OnStack_2_LClick)
+        self._stack2ctrl.UpdateCardTooltip(self._stack2)
+        
+        self._stack3ctrl = Stack_3_Control(self._fieldctrl, (319,28), self._engine.GetSkinImage('Stack'), self)
+        self._stack3ctrl.Bind(wx.EVT_LEFT_UP, self.OnStack_3_LClick)
+        self._stack3ctrl.UpdateCardTooltip(self._stack3)
+        
+        self._stack4ctrl = Stack_4_Control(self._fieldctrl, (417,28), self._engine.GetSkinImage('Stack'), self)
+        self._stack4ctrl.Bind(wx.EVT_LEFT_UP, self.OnStack_4_LClick)
+        self._stack4ctrl.UpdateCardTooltip(self._stack4)
+        
+        self._stack5ctrl = Stack_5_Control(self._fieldctrl, (515,28), self._engine.GetSkinImage('Stack'), self)
+        self._stack5ctrl.Bind(wx.EVT_LEFT_UP, self.OnStack_5_LClick)
+        self._stack5ctrl.UpdateCardTooltip(self._stack5)
+        
         # RFG
         self._rfgctrl = RFGControl(self._fieldctrl, (619,11), self._engine.GetSkinImage('RFG'), self)
         self._rfgctrl.Bind(wx.EVT_LEFT_UP, self.OnGamePopupRFG)
@@ -254,6 +330,7 @@ class GamePanel(wx.Panel):
         self._opponentrfgctrl.UpdateCardTooltip(self._opponentrfg)
         # OpponentDeck
         self._opponentdeckctrl = OpponentDeckControl(self._opponentfieldctrl, (20,4), self._engine.GetSkinImage('Deck'))
+        self._oppdeckcounttext = wx.StaticText(self._opponentfieldctrl, -1, '0', pos=(41,28))
         # Hand
         self._handctrl = HandControl(self)
         
@@ -323,7 +400,7 @@ class GamePanel(wx.Panel):
         item.SetBitmap(self._engine.GetSkinImage('Toextra'))
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGamePopupFusionDeck, item)
-        item = wx.MenuItem(self._game_menu, -1, self._engine.GetLangString('Reset Game'))
+        item = wx.MenuItem(self._game_menu, -1, self._engine.GetLangString('Reset Game/Side'))
         item.SetBitmap(self._engine.GetSkinImage('Reload'))
         self._game_menu.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnGamePopupResetGame, item)
@@ -390,7 +467,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         wx.AboutBox(info)
 
     def OnConsoleLostFocus(self, event):
-        if self.IsShown() and self.IsShownOnScreen() and not self._decklistctrl.IsActive() and not self._opponentdecklistctrl.IsActive() and not self._gravelistctrl.IsActive() and not self._opponentgravelistctrl.IsActive() and not self._rfglistctrl.IsActive() and not self._opponentrfglistctrl.IsActive() and not self._fusiondecklistctrl.IsActive() and not self._sidedecklistctrl.IsActive() and not self._opponentfusiondecklistctrl.IsActive() and not self._opponentsidedecklistctrl.IsActive() and not self._smilesdialog.IsActive():
+        if self.IsShown() and self.IsShownOnScreen() and not self._decklistctrl.IsActive() and not self._opponentdecklistctrl.IsActive() and not self._gravelistctrl.IsActive() and not self._stack_1_listctrl.IsActive() and not self._stack_2_listctrl.IsActive() and not self._stack_3_listctrl.IsActive() and not self._stack_4_listctrl.IsActive() and not self._stack_5_listctrl.IsActive() and not self._opponentgravelistctrl.IsActive() and not self._rfglistctrl.IsActive() and not self._opponentrfglistctrl.IsActive() and not self._fusiondecklistctrl.IsActive() and not self._sidedecklistctrl.IsActive() and not self._opponentfusiondecklistctrl.IsActive() and not self._opponentsidedecklistctrl.IsActive() and not self._smilesdialog.IsActive():
             self._consolectrl.SetFocus()
 
     def Pass(self):
@@ -468,11 +545,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         if self._fusiondecklistctrl.IsShown():
             self._fusiondecklistctrl.Hide()
             self.WriteLookPacket(LOOK_FUSIONDECK_NO)
-            self.WriteGameMessage(self._engine.GetLangString("end looking at his Fusion Deck."), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his Extra Deck."), CHAT_PLAYER)
         else:
             self._fusiondecklistctrl.Show()
             self.WriteLookPacket(LOOK_FUSIONDECK_YES)
-            self.WriteGameMessage(self._engine.GetLangString("is looking at his Fusion Deck."), CHAT_PLAYER)
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his Extra Deck."), CHAT_PLAYER)
     
     def OnGamePopupSideDeck(self, event=None):
         if self._sidedecklistctrl.IsShown():
@@ -497,6 +574,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self._fusiondeck = []
         self._hand = []
         self._grave = []
+        self._stack1 = []
+        self._stack2 = []
+        self._stack3 = []
+        self._stack4 = []
+        self._stack5 = []
         self._rfg = []
         self._opponentdeck = []
         self._opponentsidedeck = []
@@ -524,6 +606,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshHand()
         self.RefreshRFG()
         self.RefreshGrave()
+        self.RefreshStack1()
+        self.RefreshStack2()
+        self.RefreshStack3()
+        self.RefreshStack4()
+        self.RefreshStack5()
         self.RefreshFusionDeck()
         self.RefreshSideDeck()
         self.RefreshOpponentDeck()
@@ -622,6 +709,56 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshHand()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardHandToStack1(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_1)
+        self.MoveCard(self._hand, self._stack1, card)
+        card.SetCardState(POS_STACK_1)
+        card.Reparent(self._stack_1_listctrl)
+        self.RefreshStack1()
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 1.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardHandToStack2(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_2)
+        self.MoveCard(self._hand, self._stack2, card)
+        card.SetCardState(POS_STACK_2)
+        card.Reparent(self._stack_2_listctrl)
+        self.RefreshStack2()
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 2.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardHandToStack3(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_3)
+        self.MoveCard(self._hand, self._stack3, card)
+        card.SetCardState(POS_STACK_3)
+        card.Reparent(self._stack_3_listctrl)
+        self.RefreshStack3()
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 3.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardHandToStack4(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_4)
+        self.MoveCard(self._hand, self._stack4, card)
+        card.SetCardState(POS_STACK_4)
+        card.Reparent(self._stack_4_listctrl)
+        self.RefreshStack4()
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 4.', card.GetCardName()), CHAT_PLAYER)
+    
+    def OnCardHandToStack5(self, arg=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_5)
+        self.MoveCard(self._hand, self._stack5, card)
+        card.SetCardState(POS_STACK_5)
+        card.Reparent(self._stack_5_listctrl)
+        self.RefreshStack5()
+        self.RefreshHand()
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 5.', card.GetCardName()), CHAT_PLAYER)
 
     def OnCardHandToRFG(self, arg=None):
         card = self._currentcard
@@ -641,6 +778,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.WriteGameMessage(self._engine.GetLangString('sent ') + 'card' + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         self.Shuffle()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         #self.RefreshDeck()
         self.RefreshHand()
  
@@ -672,6 +810,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshHand()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardHandToBottomDeck(self, arg=None):
@@ -682,6 +821,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshHand()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.') + ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     
     def OnHandMTActivate(self, arg=None):
@@ -766,6 +906,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + 'card' + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardHandToTopDeck(self, arg=None):
@@ -775,6 +916,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardHandToBottomDeck(self, arg=None):
@@ -784,6 +926,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentHand()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     
     def OnOpponentHandMTActivate(self, arg=None):
@@ -1039,6 +1182,56 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_PLAYER)
     
+    def OnCardFieldToStack1(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_1)
+        self.MoveCard(self._field, self._stack1, card)
+        card.SetCardState(POS_STACK_1)
+        card.Reparent(self._stack_1_listctrl)
+        self.RefreshStack1()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 1.', card.GetCardName()), CHAT_PLAYER)
+        
+    def OnCardFieldToStack2(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_2)
+        self.MoveCard(self._field, self._stack2, card)
+        card.SetCardState(POS_STACK_2)
+        card.Reparent(self._stack_2_listctrl)
+        self.RefreshStack2()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 2.', card.GetCardName()), CHAT_PLAYER)
+        
+    def OnCardFieldToStack3(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_3)
+        self.MoveCard(self._field, self._stack3, card)
+        card.SetCardState(POS_STACK_3)
+        card.Reparent(self._stack_3_listctrl)
+        self.RefreshStack3()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 3.', card.GetCardName()), CHAT_PLAYER)
+        
+    def OnCardFieldToStack4(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_4)
+        self.MoveCard(self._field, self._stack4, card)
+        card.SetCardState(POS_STACK_4)
+        card.Reparent(self._stack_4_listctrl)
+        self.RefreshStack4()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 4.', card.GetCardName()), CHAT_PLAYER)
+        
+    def OnCardFieldToStack5(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_STACK_5)
+        self.MoveCard(self._field, self._stack5, card)
+        card.SetCardState(POS_STACK_5)
+        card.Reparent(self._stack_5_listctrl)
+        self.RefreshStack5()
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent %s to Stack 5.', card.GetCardName()), CHAT_PLAYER)
+    
     def OnCardFieldToRFG(self, event=None):
         card = self._currentcard
         self.WriteMoveCardPacket(card, POS_OPP_RFG)
@@ -1055,7 +1248,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_FUSIONDECK)
         card.Reparent(self._fusiondecklistctrl)
         self.RefreshFusionDeck()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his fusion deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his Extra Deck.'), CHAT_PLAYER)
 
     def OnCardFieldToTopDeck(self, event=None):
         card = self._currentcard
@@ -1068,6 +1261,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
 
     def OnCardFieldToBottomDeck(self, event=None):
         card = self._currentcard
@@ -1080,6 +1274,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
 
     def OnCardFieldToDeckShuffle(self, event=None):
         card = self._currentcard
@@ -1092,6 +1287,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_DECK)
         card.Reparent(self._decklistctrl)
         self.Shuffle()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         #self.RefreshDeck()
 
     def OnCardFieldToHand(self, event=None):
@@ -1194,6 +1390,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
 
     def OnOpponentCardFieldToBottomDeck(self, event=None):
         card = self._opponentcurrentcard
@@ -1205,6 +1402,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
 
     def OnOpponentCardFieldToDeckShuffle(self, event=None):
         card = self._opponentcurrentcard
@@ -1216,6 +1414,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.SetCardState(POS_OPP_DECK)
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
 
     def OnOpponentCardFieldToHand(self, event=None):
         card = self._opponentcurrentcard
@@ -1274,6 +1473,56 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshHand()
         self.RefreshGrave()
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+    
+    def OnCardStack_1_ToHand(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND)
+        self.MoveCardToBottom(self._stack1, self._hand, card)
+        card.SetCardState(POS_HAND)
+        card.Reparent(self._handctrl)
+        self.RefreshHand()
+        self.RefreshStack1()
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+    
+    def OnCardStack_2_ToHand(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND)
+        self.MoveCardToBottom(self._stack2, self._hand, card)
+        card.SetCardState(POS_HAND)
+        card.Reparent(self._handctrl)
+        self.RefreshHand()
+        self.RefreshStack2()
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+   
+    def OnCardStack_3_ToHand(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND)
+        self.MoveCardToBottom(self._stack3, self._hand, card)
+        card.SetCardState(POS_HAND)
+        card.Reparent(self._handctrl)
+        self.RefreshHand()
+        self.RefreshStack3()
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+    
+    def OnCardStack_4_ToHand(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND)
+        self.MoveCardToBottom(self._stack4, self._hand, card)
+        card.SetCardState(POS_HAND)
+        card.Reparent(self._handctrl)
+        self.RefreshHand()
+        self.RefreshStack4()
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
+    
+    def OnCardStack_5_ToHand(self, event=None):
+        card = self._currentcard
+        self.WriteMoveCardPacket(card, POS_OPP_HAND)
+        self.MoveCardToBottom(self._stack5, self._hand, card)
+        card.SetCardState(POS_HAND)
+        card.Reparent(self._handctrl)
+        self.RefreshHand()
+        self.RefreshStack5()
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.'), CHAT_PLAYER)
 
     def OnCardGraveToFusionDeck(self, event=None):
         card = self._currentcard
@@ -1283,7 +1532,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._fusiondecklistctrl)
         self.RefreshGrave()
         self.RefreshFusionDeck()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his fusion deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his Extra Deck.'), CHAT_PLAYER)
 
     def OnCardGraveToTopDeck(self, event=None):
         card = self._currentcard
@@ -1293,6 +1542,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshGrave()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardGraveToBottomDeck(self, event=None):
@@ -1303,6 +1553,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshGrave()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardGraveToDeckShuffle(self, event=None):
@@ -1315,6 +1566,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshGrave()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
+        
 
     def OnCardGraveToRFG(self, event=None):
         card = self._currentcard
@@ -1357,6 +1610,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentGrave()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardGraveToBottomDeck(self, event=None):
@@ -1366,6 +1620,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshopponentGrave()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardGraveToDeckShuffle(self, event=None):
@@ -1375,6 +1630,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentGrave()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
 
@@ -1464,7 +1720,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._fusiondecklistctrl)
         self.RefreshRFG()
         self.RefreshFusionDeck()
-        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his fusion deck.'), CHAT_PLAYER)
+        self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his Extra Deck.'), CHAT_PLAYER)
     
     def OnCardDeckToSideDeck(self, event=None):
         card = self._currentcard
@@ -1474,7 +1730,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._sidedecklistctrl)
         self.RefreshDeck()
         self.RefreshSideDeck()
-        self.WriteGameMessage('Moved card from deck to side', CHAT_PLAYER)
+        self._deckcounttext.SetLabel(str(len(self._deck)))
+        self.WriteGameMessage('moved card from Deck to Side Deck', CHAT_PLAYER)
 
     def OnCardRFGToTopDeck(self, event=None):
         card = self._currentcard
@@ -1484,6 +1741,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshRFG()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardRFGToBottomDeck(self, event=None):
@@ -1494,6 +1752,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshRFG()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardRFGToDeckShuffle(self, event=None):
@@ -1506,6 +1765,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.Shuffle()
         #self.RefreshDeck()
         self.RefreshRFG()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
 
     def OnCardRFGToGrave(self, event=None):
         card = self._currentcard
@@ -1549,6 +1809,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToBottomDeck(self, event=None):
@@ -1558,6 +1819,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to the bottom of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToDeckShuffle(self, event=None):
@@ -1567,6 +1829,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentdecklistctrl)
         self.RefreshOpponentDeck()
         self.RefreshOpponentRFG()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardRFGToFusionDeck(self, event=None):
@@ -1586,8 +1849,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentsidedecklistctrl)
         self.RefreshOpponentSideDeck()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
-        self.WriteGameMessage('dsdasdsad', CHAT_OPPONENT)
+        self.WriteGameMessage('moved card from Deck to Side Deck', CHAT_OPPONENT)
     
     def OnOpponentCardRFGToGrave(self, event=None):
         card = self._opponentcurrentcard
@@ -1647,6 +1911,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._handctrl)
         self.RefreshHand()
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardDeckToGrave(self, event=None):
@@ -1657,6 +1922,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._gravelistctrl)
         self.RefreshGrave()
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName())+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
@@ -1668,6 +1934,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._rfglistctrl)
         self.RefreshRFG()
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
 
     def OnCardDeckToField(self, event=None):
@@ -1682,6 +1949,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Hide()
         card.Show()
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     #End
 
@@ -1705,6 +1973,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._decklistctrl)
         self.RefreshDeck()
         self.RefreshSideDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_PLAYER)
         self.WriteGameMessage('moved card from Side Deck to Deck', CHAT_PLAYER)
 
@@ -1756,6 +2025,18 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentGrave()
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName()), CHAT_OPPONENT)
+        
+    
+    def OnOpponentCardSideDeckToDeck(self, event=None):
+        card = self._opponentcurrentcard
+        self.MoveCard(self._opponentsidedeck, self._opponentdeck, card)
+        card.SetCardState(POS_OPP_DECK)
+        card.Reparent(self._opponentdeckctrl)
+        self.RefreshOpponentSideDeck()
+        self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
+        #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
+        self.WriteGameMessage('moved card from Side Deck to Deck', CHAT_OPPONENT)
 
     def OnOpponentCardFusionDeckToRFG(self, event=None):
         card = self._opponentcurrentcard
@@ -1775,6 +2056,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponenthandctrl)
         self.RefreshOpponentHand()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his hand.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardDeckToGrave(self, event=None):
@@ -1784,6 +2066,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentgravelistctrl)
         self.RefreshOpponentGrave()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         #self.WriteGameMessage(self._engine.GetLangString('sent ') + card.GetCardName() + self._engine.GetLangString(' to his graveyard.'), CHAT_OPPONENT)
         self.WriteGameMessage(self._engine.GetLangString('sent %s to his graveyard.', card.GetCardName())+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
@@ -1794,6 +2077,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentrfglistctrl)
         self.RefreshOpponentRFG()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('removed ') + card.GetCardName() + self._engine.GetLangString(' from game.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
 
     def OnOpponentCardDeckToField(self, event=None):
@@ -1807,6 +2091,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Hide()
         card.Show()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('place ') + card.GetCardName() + self._engine.GetLangString(' on the field.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     #End
 
@@ -1848,6 +2133,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._gravelistctrl)
         self.RefreshGrave()
         self.RefreshDeck()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         self.WriteCardActionPacket(ACTION_DISCARDTOP)
         self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.')+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
     
@@ -1878,6 +2164,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         card.Reparent(self._opponentgravelistctrl)
         self.RefreshOpponentGrave()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         self.WriteGameMessage(self._engine.GetLangString('discarded ') + card.GetCardName() + self._engine.GetLangString(' from the top of his deck.')+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
     
     def OnOpponentActionRevealTop(self, event=None):
@@ -1893,6 +2180,56 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self._gravelistctrl.Show()
             self.WriteLookPacket(LOOK_GRAVE_YES)
             self.WriteGameMessage(self._engine.GetLangString('is looking at his graveyard.'), CHAT_PLAYER)
+    
+    def OnStack_1_LClick(self, event=None):
+        if self._stack_1_listctrl.IsShown():
+            self._stack_1_listctrl.Hide()
+            self.WriteLookPacket(LOOK_STACK_1_NO)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Stack 1.'), CHAT_PLAYER)
+        else:
+            self._stack_1_listctrl.Show()
+            self.WriteLookPacket(LOOK_STACK_1_YES)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 1.'), CHAT_PLAYER)
+    
+    def OnStack_2_LClick(self, event=None):
+        if self._stack_2_listctrl.IsShown():
+            self._stack_2_listctrl.Hide()
+            self.WriteLookPacket(LOOK_STACK_2_NO)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Stack 2.'), CHAT_PLAYER)
+        else:
+            self._stack_2_listctrl.Show()
+            self.WriteLookPacket(LOOK_STACK_2_YES)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 2.'), CHAT_PLAYER)
+    
+    def OnStack_3_LClick(self, event=None):
+        if self._stack_3_listctrl.IsShown():
+            self._stack_3_listctrl.Hide()
+            self.WriteLookPacket(LOOK_STACK_3_NO)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Stack 3.'), CHAT_PLAYER)
+        else:
+            self._stack_3_listctrl.Show()
+            self.WriteLookPacket(LOOK_STACK_3_YES)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 3.'), CHAT_PLAYER)
+    
+    def OnStack_4_LClick(self, event=None):
+        if self._stack_4_listctrl.IsShown():
+            self._stack_4_listctrl.Hide()
+            self.WriteLookPacket(LOOK_STACK_4_NO)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Stack 4.'), CHAT_PLAYER)
+        else:
+            self._stack_4_listctrl.Show()
+            self.WriteLookPacket(LOOK_STACK_4_YES)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 4.'), CHAT_PLAYER)
+    
+    def OnStack_5_LClick(self, event=None):
+        if self._stack_5_listctrl.IsShown():
+            self._stack_5_listctrl.Hide()
+            self.WriteLookPacket(LOOK_STACK_5_NO)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Stack 5.'), CHAT_PLAYER)
+        else:
+            self._stack_5_listctrl.Show()
+            self.WriteLookPacket(LOOK_STACK_5_YES)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 5.'), CHAT_PLAYER)
 
     def OnOpponentGraveLClick(self, event=None):
         if self._opponentgravelistctrl.IsShown():
@@ -1918,6 +2255,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshHand()
         self.RefreshDeck()
         self.WritePacket(packets.DrawPacket(reveal))
+        self._deckcounttext.SetLabel(str(len(self._deck)))
         if reveal:
             self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.'+ ' ' + str(len(self._deck)) +self._engine.GetLangString(' cards left.'), CHAT_PLAYER)
         else:
@@ -1933,6 +2271,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         c.Reparent(self._opponenthandctrl)
         self.RefreshOpponentHand()
         self.RefreshOpponentDeck()
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
         if reveal:
             self.WriteGameMessage(self._engine.GetLangString('drew ') + c.GetCardName() + '.'+ ' ' + str(len(self._opponentdeck)) +self._engine.GetLangString(' cards left.'), CHAT_OPPONENT)
         else:
@@ -2010,6 +2349,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardDropOnGrave(x, y, data)
         elif self.Hit(x, y, self._rfgctrl.GetRect()):
             self.OnCardDropOnRFG(x, y, data)
+        elif self.Hit(x, y, self._stack1ctrl.GetRect()):
+            self.OnCardDropOnStack1(x, y, data)
+        elif self.Hit(x, y, self._stack2ctrl.GetRect()):
+            self.OnCardDropOnStack2(x, y, data)
+        elif self.Hit(x, y, self._stack3ctrl.GetRect()):
+            self.OnCardDropOnStack3(x, y, data)
+        elif self.Hit(x, y, self._stack4ctrl.GetRect()):
+            self.OnCardDropOnStack4(x, y, data)
+        elif self.Hit(x, y, self._stack5ctrl.GetRect()):
+            self.OnCardDropOnStack5(x, y, data)
         elif self.Hit(x, y, wx.Rect(0,0,self._fieldctrl.GetSize().GetWidth(),self._fieldctrl.GetSize().GetHeight())):
             self._currentcard = (c,x,y)
             if c.GetCardPosition() == POS_FIELD:
@@ -2043,6 +2392,76 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardRFGToGrave()
         elif c.GetCardPosition() == POS_FUSIONDECK:
             self.OnCardFusionDeckToGrave()
+    
+    def OnCardDropOnStack1(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToStack1()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToStack1()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToStack1()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToStack1()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToStack1()
+    
+    def OnCardDropOnStack2(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToStack2()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToStack2()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToStack2()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToStack2()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToStack2()
+    
+    def OnCardDropOnStack3(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToStack3()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToStack3()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToStack3()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToStack3()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToStack3()
+    
+    def OnCardDropOnStack4(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToStack4()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToStack4()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToStack4()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToStack4()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToStack4()
+ 
+    def OnCardDropOnStack5(self, x, y, data):
+        c = self.GetCardFromSerial(data)
+        self._currentcard = c
+        if c.GetCardPosition() == POS_HAND:
+            self.OnCardHandToStack5()
+        elif c.GetCardPosition() == POS_FIELD:
+            self.OnCardFieldToStack5()
+        elif c.GetCardPosition() == POS_DECK:
+            self.OnCardDeckToStack5()
+        elif c.GetCardPosition() == POS_RFG:
+            self.OnCardRFGToStack5()
+        elif c.GetCardPosition() == POS_FUSIONDECK:
+            self.OnCardFusionDeckToStack5()
     
     def OnCardDropOnDeck(self, x, y, data):
         c = self.GetCardFromSerial(data)
@@ -2085,6 +2504,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.OnCardRFGToHand()
         elif c.GetCardPosition() == POS_DECK:
             self.OnCardDeckToHand()
+        elif c.GetCardPosition() == POS_STACK_1:
+            self.OnCardStack_1_ToHand()
+        elif c.GetCardPosition() == POS_STACK_2:
+            self.OnCardStack_2_ToHand()
+        elif c.GetCardPosition() == POS_STACK_3:
+            self.OnCardStack_3_ToHand()
+        elif c.GetCardPosition() == POS_STACK_4:
+            self.OnCardStack_4_ToHand()
+        elif c.GetCardPosition() == POS_STACK_5:
+            self.OnCardStack_5_ToHand()
 
     def OnCardDropOnFusionDeck(self, x, y, data):
         c = self.GetCardFromSerial(data)
@@ -2119,6 +2548,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def RefreshFusionDeck(self):
         l = self._fusiondeck
         n = len(l)
+        self._extradeckcounttext.SetLabel(str(len(self._fusiondeck)))
         if n == 0:
             return
         x_pos = 0
@@ -2167,6 +2597,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def RefreshOpponentFusionDeck(self):
         l = self._opponentfusiondeck
         n = len(l)
+        self._oppextradeckcounttext.SetLabel(str(len(self._opponentfusiondeck)))
         if n == 0:
             return
         x_pos = 0
@@ -2254,6 +2685,131 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             c.Show()
             xtmp= xtmp+1
         self._gravelistctrl.Scroll.SetScrollbars(0, 11, 0, n)
+    
+    def RefreshStack1(self):
+        self._stack1ctrl.UpdateCardTooltip(self._stack1)
+        l = self._stack1
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._stack_1_listctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 3:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._stack_1_listctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._stack_1_listctrl.Scroll.SetScrollbars(0, 30, 0, n)
+    
+    def RefreshStack2(self):
+        self._stack2ctrl.UpdateCardTooltip(self._stack2)
+        l = self._stack2
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._stack_2_listctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 3:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._stack_2_listctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._stack_2_listctrl.Scroll.SetScrollbars(0, 30, 0, n)
+    
+    def RefreshStack3(self):
+        self._stack3ctrl.UpdateCardTooltip(self._stack3)
+        l = self._stack3
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._stack_3_listctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 3:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._stack_3_listctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._stack_3_listctrl.Scroll.SetScrollbars(0, 30, 0, n)
+    
+    def RefreshStack4(self):
+        self._stack4ctrl.UpdateCardTooltip(self._stack4)
+        l = self._stack4
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._stack_4_listctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 3:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._stack_4_listctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._stack_4_listctrl.Scroll.SetScrollbars(0, 30, 0, n)
+    
+    def RefreshStack5(self):
+        self._stack5ctrl.UpdateCardTooltip(self._stack5)
+        l = self._stack5
+        n = len(l)
+        if n == 0:
+            return
+        x_pos = 0
+        x_move = 64
+        y_pos = 0
+        y_move = 90
+        xtmp = 0
+        ytmp = 0
+        self._stack_5_listctrl.Scroll.Scroll(0,0)
+        for c in l:
+            if xtmp == 3:
+                xtmp = 0
+                ytmp = ytmp+1
+            c.RefreshTexture()
+            c.SetPosition((x_move*xtmp,ytmp*y_move))
+            c.Reparent(self._stack_5_listctrl.Scroll)
+            c.Hide()
+            c.Show()
+            xtmp= xtmp+1
+        self._stack_5_listctrl.Scroll.SetScrollbars(0, 30, 0, n)
         
     def RefreshOpponentGrave(self):
         self._opponentgravectrl.UpdateCardTooltip(self._opponentgrave)
@@ -2354,6 +2910,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             c.Show()
             xtmp= xtmp+1
         self._decklistctrl.Scroll.SetScrollbars(0, 11, 0, n)
+        self._deckcounttext.SetLabel(str(len(self._deck)))
 
 
     def RefreshOpponentDeck(self):
@@ -2379,6 +2936,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             c.Show()
             xtmp= xtmp+1
         self._opponentdecklistctrl.Scroll.SetScrollbars(0, 11, 0, n)
+        self._oppdeckcounttext.SetLabel(str(len(self._opponentdeck)))
 
     def RefreshHand(self):
         l = self._hand
@@ -2450,6 +3008,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self._cardstarsctrl.SetLabel(stars)
         if typecf == 'Tuner':
             self._cardstarsctrl.SetForegroundColour((0,145,0))
+        else:
+            self._cardstarsctrl.SetForegroundColour((0,0,0))
+        if typecf == 'Exceed':
+            self._cardstarsctrl.SetForegroundColour((0,0,255))
         else:
             self._cardstarsctrl.SetForegroundColour((0,0,0))
                 
@@ -2686,6 +3248,17 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.RefreshDeck()
         elif pos == POS_RFG:
             self.RefreshRFG()
+        elif pos == POS_STACK_1:
+            self.RefreshStack1()
+        elif pos == POS_STACK_2:
+            self.RefreshStack2()
+        elif pos == POS_STACK_3:
+            self.RefreshStack3()
+        elif pos == POS_STACK_4:
+            self.RefreshStack4()
+        elif pos == POS_STACK_5:
+            self.RefreshStack5()
+
 
     def GetCardList(self, pos):
         if pos == POS_FIELD:
@@ -2694,6 +3267,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             return self._hand
         elif pos == POS_GRAVE:
             return self._grave
+        elif pos == POS_STACK_1:
+            return self._stack1
+        elif pos == POS_STACK_2:
+            return self._stack2
+        elif pos == POS_STACK_3:
+            return self._stack3
+        elif pos == POS_STACK_4:
+            return self._stack4
+        elif pos == POS_STACK_5:
+            return self._stack5
         elif pos == POS_DECK:
             return self._deck
         elif pos == POS_RFG:
@@ -2712,6 +3295,21 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
 
     def GetCardFromSerial(self, serial):
         for c in self._grave:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._stack1:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._stack2:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._stack3:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._stack4:
+            if c.GetSerial() == serial:
+                return c
+        for c in self._stack5:
             if c.GetSerial() == serial:
                 return c
         for c in self._field:
@@ -2820,6 +3418,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshDeck()
         self.WriteGameMessage(self._engine.GetLangString('shuffled his deck.'), CHAT_PLAYER)
         self.WriteShufflePacket()
+        self._deckcounttext.SetLabel(str(len(self._deck)))
     
     def ShuffleHand(self):
         random.shuffle(self._hand)
@@ -2852,6 +3451,76 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 c.Show()
             else:
                 self.MoveCard(self._grave, self._deck, c)
+                c.SetCardState(POS_DECK)
+                c.Reparent(self._decklistctrl)
+                c.Hide()
+                c.Show()
+        while len(self._stack1) > 0:
+            c = self._stack1[0]
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
+                self.MoveCard(self._stack1, self._fusiondeck, c)
+                c.SetCardState(POS_FUSIONDECK)
+                c.Reparent(self._fusiondecklistctrl)
+                c.Hide()
+                c.Show()
+            else:
+                self.MoveCard(self._stack1, self._deck, c)
+                c.SetCardState(POS_DECK)
+                c.Reparent(self._decklistctrl)
+                c.Hide()
+                c.Show()
+        while len(self._stack2) > 0:
+            c = self._stack1[0]
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
+                self.MoveCard(self._stack2, self._fusiondeck, c)
+                c.SetCardState(POS_FUSIONDECK)
+                c.Reparent(self._fusiondecklistctrl)
+                c.Hide()
+                c.Show()
+            else:
+                self.MoveCard(self._stack2, self._deck, c)
+                c.SetCardState(POS_DECK)
+                c.Reparent(self._decklistctrl)
+                c.Hide()
+                c.Show()
+        while len(self._stack3) > 0:
+            c = self._stack1[0]
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
+                self.MoveCard(self._stack3, self._fusiondeck, c)
+                c.SetCardState(POS_FUSIONDECK)
+                c.Reparent(self._fusiondecklistctrl)
+                c.Hide()
+                c.Show()
+            else:
+                self.MoveCard(self._stack3, self._deck, c)
+                c.SetCardState(POS_DECK)
+                c.Reparent(self._decklistctrl)
+                c.Hide()
+                c.Show()
+        while len(self._stack4) > 0:
+            c = self._stack1[0]
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
+                self.MoveCard(self._stack4, self._fusiondeck, c)
+                c.SetCardState(POS_FUSIONDECK)
+                c.Reparent(self._fusiondecklistctrl)
+                c.Hide()
+                c.Show()
+            else:
+                self.MoveCard(self._stack4, self._deck, c)
+                c.SetCardState(POS_DECK)
+                c.Reparent(self._decklistctrl)
+                c.Hide()
+                c.Show()
+        while len(self._stack5) > 0:
+            c = self._stack1[0]
+            if c.IsFusion() or c.IsSynchro() or c.IsToken():
+                self.MoveCard(self._stack5, self._fusiondeck, c)
+                c.SetCardState(POS_FUSIONDECK)
+                c.Reparent(self._fusiondecklistctrl)
+                c.Hide()
+                c.Show()
+            else:
+                self.MoveCard(self._stack5, self._deck, c)
                 c.SetCardState(POS_DECK)
                 c.Reparent(self._decklistctrl)
                 c.Hide()
@@ -2954,9 +3623,15 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
     def RefreshAll(self):
         self.RefreshHand()
         self.RefreshGrave()
+        self.RefreshStack1()
+        self.RefreshStack2()
+        self.RefreshStack3()
+        self.RefreshStack4()
+        self.RefreshStack5()
         self.RefreshRFG()
         self.RefreshDeck()
         self.RefreshFusionDeck()
+        self.RefreshSideDeck()
 
     def RefreshOpponentAll(self):
         self.RefreshOpponentHand()
@@ -2964,6 +3639,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.RefreshOpponentRFG()
         self.RefreshOpponentDeck()
         self.RefreshOpponentFusionDeck()
+        self.RefreshOpponentSideDeck()
 
     # Packets
     def WritePacket(self, packet):
@@ -3122,6 +3798,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                     self.OnOpponentCardHandToDeckShuffle()
             elif dest == POS_OPP_GRAVE: # Grave
                 self.OnOpponentCardHandToGrave()
+            elif dest == POS_OPP_STACK_1: # Grave
+                self.OnOpponentCardHandToStack1()
+            elif dest == POS_OPP_STACK_2: 
+                self.OnOpponentCardHandToStack2()
+            elif dest == POS_OPP_STACK_3: 
+                self.OnOpponentCardHandToStack3()
+            elif dest == POS_OPP_STACK_4: 
+                self.OnOpponentCardHandToStack4()
+            elif dest == POS_OPP_STACK_5: 
+                self.OnOpponentCardHandToStack5()
             elif dest == POS_OPP_RFG: # RFG
                 self.OnOpponentCardHandToRFG()
             elif dest == POS_OPP_FIELD: # Field
@@ -3143,6 +3829,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 self.OnOpponentCardFieldToHand()
             elif dest == POS_OPP_GRAVE:
                 self.OnOpponentCardFieldToGrave()
+            elif dest == POS_OPP_STACK_1:
+                self.OnOpponentCardFieldToStack1()
+            elif dest == POS_OPP_STACK_2:
+                self.OnOpponentCardFieldToStack2()
+            elif dest == POS_OPP_STACK_3:
+                self.OnOpponentCardFieldToStack3()
+            elif dest == POS_OPP_STACK_4:
+                self.OnOpponentCardFieldToStack4()
+            elif dest == POS_OPP_STACK_5:
+                self.OnOpponentCardFieldToStack5()
             elif dest == POS_OPP_RFG:
                 self.OnOpponentCardFieldToRFG()
             elif dest == POS_OPP_DECK:
@@ -3182,6 +3878,111 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 self.OnOpponentCardGraveToField()
             elif dest == POS_OPP_FUSIONDECK:
                 self.OnOpponentCardGraveToFusionDeck()
+        elif pos == POS_OPP_STACK_1:
+            if dest == POS_OPP_HAND:
+                self.OnOpponentCardStack_1_ToHand()
+            '''elif dest == POS_OPP_RFG:
+                self.OnOpponentCardStack_1_ToRFG()
+            elif dest == POS_OPP_DECK:
+                dest2 = reader.ReadInt()
+                if dest2 == 0:
+                    self.OnOpponentCardStack_1_ToBottomDeck()
+                elif dest2 == 1:
+                    self.OnOpponentCardStack_1_ToTopDeck()
+                elif dest2 == 2:
+                    self.OnOpponentCardStack_1_ToDeckShuffle()
+            elif dest == POS_OPP_FIELD:
+                dest2 = reader.ReadInt()
+                x = reader.ReadInt()
+                y = reader.ReadInt()
+                self._opponentcurrentcard = [card,x,y]
+                self.OnOpponentCardStack_1_ToField()
+            elif dest == POS_OPP_FUSIONDECK:
+                self.OnOpponentCardStack_1_ToFusionDeck()'''
+        elif pos == POS_OPP_STACK_2:
+            if dest == POS_OPP_HAND:
+                self.OnOpponentCardStack_2_ToHand()
+            '''elif dest == POS_OPP_RFG:
+                self.OnOpponentCardStack_2_ToRFG()
+            elif dest == POS_OPP_DECK:
+                dest2 = reader.ReadInt()
+                if dest2 == 0:
+                    self.OnOpponentCardStack_2_ToBottomDeck()
+                elif dest2 == 1:
+                    self.OnOpponentCardStack_2_ToTopDeck()
+                elif dest2 == 2:
+                    self.OnOpponentCardStack_2_ToDeckShuffle()
+            elif dest == POS_OPP_FIELD:
+                dest2 = reader.ReadInt()
+                x = reader.ReadInt()
+                y = reader.ReadInt()
+                self._opponentcurrentcard = [card,x,y]
+                self.OnOpponentCardStack_2_ToField()
+            elif dest == POS_OPP_FUSIONDECK:
+                self.OnOpponentCardStack_2_ToFusionDeck()'''
+        elif pos == POS_OPP_STACK_3:
+            if dest == POS_OPP_HAND:
+                self.OnOpponentCardStack_3_ToHand()
+            '''elif dest == POS_OPP_RFG:
+                self.OnOpponentCardStack_3_ToRFG()
+            elif dest == POS_OPP_DECK:
+                dest2 = reader.ReadInt()
+                if dest2 == 0:
+                    self.OnOpponentCardStack_3_ToBottomDeck()
+                elif dest2 == 1:
+                    self.OnOpponentCardStack_3_ToTopDeck()
+                elif dest2 == 2:
+                    self.OnOpponentCardStack_3_ToDeckShuffle()
+            elif dest == POS_OPP_FIELD:
+                dest2 = reader.ReadInt()
+                x = reader.ReadInt()
+                y = reader.ReadInt()
+                self._opponentcurrentcard = [card,x,y]
+                self.OnOpponentCardStack_3_ToField()
+            elif dest == POS_OPP_FUSIONDECK:
+                self.OnOpponentCardStack_3_ToFusionDeck()'''
+        elif pos == POS_OPP_STACK_4:
+            if dest == POS_OPP_HAND:
+                self.OnOpponentCardStack_4_ToHand()
+            '''elif dest == POS_OPP_RFG:
+                self.OnOpponentCardStack_4_ToRFG()
+            elif dest == POS_OPP_DECK:
+                dest2 = reader.ReadInt()
+                if dest2 == 0:
+                    self.OnOpponentCardStack_4_ToBottomDeck()
+                elif dest2 == 1:
+                    self.OnOpponentCardStack_4_ToTopDeck()
+                elif dest2 == 2:
+                    self.OnOpponentCardStack_4_ToDeckShuffle()
+            elif dest == POS_OPP_FIELD:
+                dest2 = reader.ReadInt()
+                x = reader.ReadInt()
+                y = reader.ReadInt()
+                self._opponentcurrentcard = [card,x,y]
+                self.OnOpponentCardStack_4_ToField()
+            elif dest == POS_OPP_FUSIONDECK:
+                self.OnOpponentCardStack_4_ToFusionDeck()'''
+        elif pos == POS_OPP_STACK_5:
+            if dest == POS_OPP_HAND:
+                self.OnOpponentCardStack_5_ToHand()
+            '''elif dest == POS_OPP_RFG:
+                self.OnOpponentCardStack_5_ToRFG()
+            elif dest == POS_OPP_DECK:
+                dest2 = reader.ReadInt()
+                if dest2 == 0:
+                    self.OnOpponentCardStack_5_ToBottomDeck()
+                elif dest2 == 1:
+                    self.OnOpponentCardStack_5_ToTopDeck()
+                elif dest2 == 2:
+                    self.OnOpponentCardStack_5_ToDeckShuffle()
+            elif dest == POS_OPP_FIELD:
+                dest2 = reader.ReadInt()
+                x = reader.ReadInt()
+                y = reader.ReadInt()
+                self._opponentcurrentcard = [card,x,y]
+                self.OnOpponentCardStack_5_ToField()
+            elif dest == POS_OPP_FUSIONDECK:
+                self.OnOpponentCardStack_5_ToFusionDeck()'''
         elif pos == POS_OPP_RFG:
             if dest == POS_OPP_HAND:
                 self.OnOpponentCardRFGToHand()
@@ -3210,6 +4011,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 self.OnOpponentCardDeckToGrave()
             elif dest == POS_OPP_RFG:
                 self.OnOpponentCardDeckToRFG()
+            elif dest == POS_OPP_SIDEDECK:
+                self.OnOpponentCardDeckToSideDeck()
             elif dest == POS_OPP_FIELD:
                 dest2 = reader.ReadInt()
                 x = reader.ReadInt()
@@ -3227,7 +4030,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
                 y = reader.ReadInt()
                 self._opponentcurrentcard = [card,x,y]
                 self.OnOpponentCardFusionDeckToField()
-        
+        elif pos == POS_OPP_SIDEDECK:
+            if dest == POS_OPP_DECK:
+                self.OnOpponentCardSideDeckToDeck()
+ 
     def OnCardFlipPacket(self, event):
         reader = event.data
         card = self.GetOpponentCardFromSerial(reader.ReadString())
@@ -3318,14 +4124,54 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.WriteGameMessage(self._engine.GetLangString('is looking at his Graveyard'), CHAT_OPPONENT)
         elif n == LOOK_GRAVE_NO:
             self.WriteGameMessage(self._engine.GetLangString('end looking at his Graveyard'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_1__YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 1'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_1_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Sack 1'), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_1__YES:
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Stack 1"), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_1_NO:
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's Sack 1"), CHAT_OPPONENT)
+        elif n == LOOK_STACK_2__YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 2'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_2_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Sack 2'), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_2__YES:
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Stack 2"), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_2_NO:
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's Sack 2"), CHAT_OPPONENT)
+        elif n == LOOK_STACK_3__YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 3'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_3_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Sack 3'), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_3__YES:
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Stack 3"), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_3_NO:
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's Sack 3"), CHAT_OPPONENT)
+        elif n == LOOK_STACK_4__YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 4'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_4_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Sack 4'), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_4__YES:
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Stack 4"), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_4_NO:
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's Sack 4"), CHAT_OPPONENT)
+        elif n == LOOK_STACK_5__YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Stack 5'), CHAT_OPPONENT)
+        elif n == LOOK_STACK_5_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Sack 5'), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_5__YES:
+            self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Stack 5"), CHAT_OPPONENT)
+        elif n == LOOK_OPP_STACK_5_NO:
+            self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's Sack 5"), CHAT_OPPONENT)
         elif n == LOOK_RFG_YES:
             self.WriteGameMessage(self._engine.GetLangString('is looking at his RFG'), CHAT_OPPONENT)
         elif n == LOOK_RFG_NO:
             self.WriteGameMessage(self._engine.GetLangString('end looking at his RFG'), CHAT_OPPONENT)
         elif n == LOOK_FUSIONDECK_YES:
-            self.WriteGameMessage(self._engine.GetLangString('is looking at his Fusion Deck'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Extra Deck'), CHAT_OPPONENT)
         elif n == LOOK_FUSIONDECK_NO:
-            self.WriteGameMessage(self._engine.GetLangString('end looking at his Fusion Deck'), CHAT_OPPONENT)
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Extra Deck'), CHAT_OPPONENT)
         elif n == LOOK_OPPONENT_GRAVE_YES:
             self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's Graveyard"), CHAT_OPPONENT)
         elif n == LOOK_OPPONENT_GRAVE_NO:
@@ -3334,6 +4180,10 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             self.WriteGameMessage(self._engine.GetLangString("is looking at his opponent's RFG"), CHAT_OPPONENT)
         elif n == LOOK_OPPONENT_RFG_NO:
             self.WriteGameMessage(self._engine.GetLangString("end looking at his opponent's RFG"), CHAT_OPPONENT)
+        elif n == LOOK_SIDEDECK_YES:
+            self.WriteGameMessage(self._engine.GetLangString('is looking at his Side Deck'), CHAT_OPPONENT)
+        elif n == LOOK_SIDEDECK_NO:
+            self.WriteGameMessage(self._engine.GetLangString('end looking at his Side Deck'), CHAT_OPPONENT)
 
     def OnCardActionPacket(self, event):
         reader = event.data
@@ -3451,6 +4301,107 @@ class GraveListDropTarget(wx.TextDropTarget):
     def OnDropText(self, x, y, data):
         self._game.OnCardDropOnGrave(x, y, data)
 
+class Stack_1_ListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Stack 1', pos=(400,300), size=(202,270), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(Stack_1_ListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnStack_1_LClick()
+        
+class Stack_1_ListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnStack1(x, y, data)
+
+class Stack_2_ListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Stack 2', pos=(400,300), size=(202,270), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(Stack_2_ListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnStack_2_LClick()
+        
+class Stack_2_ListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnStack2(x, y, data)
+        
+
+class Stack_3_ListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Stack 3', pos=(400,300), size=(202,270), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(Stack_3_ListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnStack_3_LClick()
+        
+class Stack_3_ListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnStack3(x, y, data)
+
+class Stack_4_ListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Stack 4', pos=(400,300), size=(202,270), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(Stack_4_ListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnStack_4_LClick()
+        
+class Stack_4_ListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnStack4(x, y, data)
+        
+class Stack_5_ListControl(wx.Frame):
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1, 'Stack 5', pos=(400,300), size=(202,270), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        self.SetDropTarget(Stack_5_ListDropTarget(parent))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Scroll = wx.ScrolledWindow(self,-1)
+        self.Scroll.SetScrollbars(0, 1, 0, 200)
+        self.Scroll.SetBackgroundColour(wx.Colour(33,35,36))
+
+    def OnClose(self, event=None):
+        self.Parent.OnStack_5_LClick()
+        
+class Stack_5_ListDropTarget(wx.TextDropTarget):
+    def __init__(self, game):
+        wx.TextDropTarget.__init__(self)
+        self._game = game
+    
+    def OnDropText(self, x, y, data):
+        self._game.OnCardDropOnStack5(x, y, data)
+
 class OpponentRFGListControl(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, -1, 'Opponent RFG', pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
@@ -3475,7 +4426,7 @@ class OpponentFusionDeckListControl(wx.Frame):
 
 class OpponentSideDeckListControl(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, "Opponent's Side-Deck", pos=(400,300), size=(670,400), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
+        wx.Frame.__init__(self, parent, -1, "Opponent's Side-Deck", pos=(400,300), size=(345,298), style=wx.FRAME_TOOL_WINDOW | wx.FRAME_FLOAT_ON_PARENT | wx.CAPTION | wx.CLOSE_BOX | wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Scroll = wx.ScrolledWindow(self,-1)
         self.Scroll.SetScrollbars(0, 1, 0, 200)
@@ -3591,6 +4542,114 @@ class GraveControl(GameObject):
         self.SetToolTip(tip)
         self.Hide()
         self.Show()
+
+class Stack_1_Control(GameObject):
+    def __init__(self, parent, pos, t, game):
+        self._game = game
+        GameObject.__init__(self, parent, pos, t)
+
+    def UpdateCardTooltip(self, l):
+        d = 0
+        s = 'Stack 1: ' + str(len(l))
+        if len(l) > 10:
+            l = l[:11]
+            d = 1
+        for c in l:
+            s += '\n' + c.GetCardName()
+        if d:
+            s += '\n...'
+        tip = wx.ToolTip(s)
+        tip.SetDelay(250)
+        self.SetToolTip(tip)
+        self.Hide()
+        self.Show()
+   
+class Stack_2_Control(GameObject):
+    def __init__(self, parent, pos, t, game):
+        self._game = game
+        GameObject.__init__(self, parent, pos, t)
+
+    def UpdateCardTooltip(self, l):
+        d = 0
+        s = 'Stack 2: ' + str(len(l))
+        if len(l) > 10:
+            l = l[:11]
+            d = 1
+        for c in l:
+            s += '\n' + c.GetCardName()
+        if d:
+            s += '\n...'
+        tip = wx.ToolTip(s)
+        tip.SetDelay(250)
+        self.SetToolTip(tip)
+        self.Hide()
+        self.Show()
+
+class Stack_3_Control(GameObject):
+    def __init__(self, parent, pos, t, game):
+        self._game = game
+        GameObject.__init__(self, parent, pos, t)
+
+    def UpdateCardTooltip(self, l):
+        d = 0
+        s = 'Stack 3: ' + str(len(l))
+        if len(l) > 10:
+            l = l[:11]
+            d = 1
+        for c in l:
+            s += '\n' + c.GetCardName()
+        if d:
+            s += '\n...'
+        tip = wx.ToolTip(s)
+        tip.SetDelay(250)
+        self.SetToolTip(tip)
+        self.Hide()
+        self.Show()
+
+class Stack_4_Control(GameObject):
+    def __init__(self, parent, pos, t, game):
+        self._game = game
+        GameObject.__init__(self, parent, pos, t)
+
+    def UpdateCardTooltip(self, l):
+        d = 0
+        s = 'Stack 4: ' + str(len(l))
+        if len(l) > 10:
+            l = l[:11]
+            d = 1
+        for c in l:
+            s += '\n' + c.GetCardName()
+        if d:
+            s += '\n...'
+        tip = wx.ToolTip(s)
+        tip.SetDelay(250)
+        self.SetToolTip(tip)
+        self.Hide()
+        self.Show()
+
+class Stack_5_Control(GameObject):
+    def __init__(self, parent, pos, t, game):
+        self._game = game
+        GameObject.__init__(self, parent, pos, t)
+
+    def UpdateCardTooltip(self, l):
+        d = 0
+        s = 'Stack 5: ' + str(len(l))
+        if len(l) > 10:
+            l = l[:11]
+            d = 1
+        for c in l:
+            s += '\n' + c.GetCardName()
+        if d:
+            s += '\n...'
+        tip = wx.ToolTip(s)
+        tip.SetDelay(250)
+        self.SetToolTip(tip)
+        self.Hide()
+        self.Show()
+
+
+
 
 class RFGControl(GameObject):
     def __init__(self, parent, pos, t, game):
@@ -3947,8 +5006,11 @@ class CardControl(GameObject, wx.DataObjectSimple):
         stars = self._card.Stars + '*'
         typecf=''
         typec = re.search('Tuner', self._card.Type)
+        typeE = re.search('Exceed', self._card.Type)
         if typec:
             typecf = typec.group ( 0 )
+        if typeE:
+            typecf = typeE.group ( 0 )
         typecm= ''
         if attrib != 'Spell' or attrib!= 'Trap':
             string = "/"
@@ -4021,7 +5083,7 @@ class CardControl(GameObject, wx.DataObjectSimple):
         else: return False
 
     def IsFusion(self):
-        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Fusion') > 0:
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Fusion') > 0 or self._card.Type.count('Exceed') > 0:
             return True
         else:
             return False
@@ -4200,8 +5262,11 @@ class OpponentCardControl(GameObject):
         stars = self._card.Stars + '*'
         typecf=''
         typec = re.search('Tuner', self._card.Type)
+        typeE = re.search('Exceed', self._card.Type)
         if typec:
             typecf = typec.group ( 0 )
+        if typeE:
+            typecf = typeE.group ( 0 )
         typecm= ''
         if attrib != 'Spell' or attrib!= 'Trap':
             string = "/"
@@ -4258,7 +5323,7 @@ class OpponentCardControl(GameObject):
         else: return False
 
     def IsFusion(self):
-        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Fusion') > 0: return True
+        if self._card.Attribute != 'Spell' and self._card.Attribute != 'Trap' and self._card.Type.count('Fusion') > 0 or self._card.Type.count('Exceed') > 0: return True
         else: return False
     
     def IsSynchro(self):
